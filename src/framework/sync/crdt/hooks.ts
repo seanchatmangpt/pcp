@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
-import { CRDT , LWWRegisterState , PNCounterState , LWWMapState } from './types';
+import { CRDT, LWWRegisterState, PNCounterState, LWWMapState } from './types';
 
 /**
  * Hook to manage CRDT state in a React component.
@@ -11,7 +11,6 @@ export function useCrdtState<TState, TDelta, TCRDT extends CRDT<TState, TDelta>,
   initialState?: TState,
   getValue?: (crdt: TCRDT) => TValue
 ): [TValue, TCRDT, (other: TState | TDelta) => void, () => void] {
-   
   const crdt = useMemo(() => factory(peerId, initialState), [peerId, initialState]);
   const [tick, setTick] = useState(0);
   const forceUpdate = useCallback(() => setTick((t) => t + 1), []);

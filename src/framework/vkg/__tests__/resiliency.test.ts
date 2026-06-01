@@ -1,4 +1,4 @@
-import { DataFactory , Quad } from '../rdf';
+import { DataFactory, Quad } from '../rdf';
 import { LocalInferenceEngine } from '../inference/engine';
 import { SemanticNodeCache } from '../cache';
 import { createTransitivityRule, createSymmetryRule } from '../inference';

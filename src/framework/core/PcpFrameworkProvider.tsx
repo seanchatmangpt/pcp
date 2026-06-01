@@ -34,8 +34,6 @@ export interface PcpFrameworkProviderProps {
  * - ErrorBoundary: Catch and handle rendering errors gracefully.
  * - ThemeProvider: Theming and visual styling logic natively.
  * - Suspense: Declarative data fetching and lazy loading boundary.
- * - SessionProvider: Authentication and user sessions.
- * - VkgProvider: Vector Knowledge Graph engine actor context.
  * - MembraneProvider: Security context and execution bounds.
  */
 export function PcpFrameworkProvider({

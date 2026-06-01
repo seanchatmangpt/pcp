@@ -63,7 +63,7 @@ export function useInclusiveInteraction(
 
   const memoizedVoiceCommands = useMemo(() => {
     return options.voiceCommands;
-  }, [JSON.stringify(options.voiceCommands)]);
+  }, [options.voiceCommands]);
 
   const actionRef = useRef(options.action);
   useEffect(() => {

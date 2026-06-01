@@ -2,9 +2,7 @@ import React, { ComponentType, forwardRef } from 'react';
 import { AutoA11yOptions } from '../types';
 import { useA11y } from '../hooks/useA11y';
 
-export interface WithA11yProps extends AutoA11yOptions {
-  // We can add more props here if needed
-}
+export type WithA11yProps = AutoA11yOptions;
 
 /**
  * A Higher-Order Component that injects accessibility props into a component.

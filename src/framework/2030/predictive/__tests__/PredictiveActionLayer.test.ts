@@ -46,7 +46,6 @@ describe('PredictiveActionLayer', () => {
       command: 'cmd-1',
       payload: { i: 1 },
       principal: mockPrincipal,
-      idempotencyKey: 'idemp-1',
       idempotencyKey: 'test-key',
     };
 
@@ -62,7 +61,6 @@ describe('PredictiveActionLayer', () => {
       command: 'cmd-1',
       payload: { i: 1 },
       principal: mockPrincipal,
-      idempotencyKey: 'idemp-1',
       idempotencyKey: 'test-key',
     };
 
@@ -72,7 +70,6 @@ describe('PredictiveActionLayer', () => {
       command: 'cmd-2',
       payload: { i: 1 },
       principal: mockPrincipal,
-      idempotencyKey: 'idemp-1',
       idempotencyKey: 'test-key',
     };
 
@@ -94,7 +91,6 @@ describe('PredictiveActionLayer', () => {
       command: 'cmd-1',
       payload: { i: 1 },
       principal: mockPrincipal,
-      idempotencyKey: 'idemp-1',
       idempotencyKey: 'test-key',
     };
 
@@ -104,7 +100,6 @@ describe('PredictiveActionLayer', () => {
       command: 'cmd-2',
       payload: { data: 'test' },
       principal: mockPrincipal,
-      idempotencyKey: 'idemp-1',
       idempotencyKey: 'test-key',
     };
 
@@ -144,7 +139,6 @@ describe('PredictiveActionLayer', () => {
       command: 'cmd-1',
       payload: { i: 1 },
       principal: mockPrincipal,
-      idempotencyKey: 'idemp-1',
       idempotencyKey: 'test-key',
     };
 

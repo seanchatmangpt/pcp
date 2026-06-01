@@ -18,11 +18,11 @@ import { blueprints } from '../../compositions/blueprints';
  * and auto-scaffolding of features using blueprints.
  */
 export const FusionDevTools: React.FC = () => {
-  // Only render in development
-  if (!__DEV__) return null;
-
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'docs' | 'scaffold'>('docs');
+
+  // Only render in development
+  if (!__DEV__) return null;
 
   return (
     <>

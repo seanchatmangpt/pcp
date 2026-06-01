@@ -106,10 +106,6 @@ class TestEngine extends FrameworkSyncEngine<TestJob> {
   public throwOnBatch: Error | null = null;
   public throwOnSuccessHook: Error | null = null;
 
-  constructor(storage: SyncStorageAdapter<TestJob>, config?: SyncEngineConfig<TestJob>) {
-    super(storage, config);
-  }
-
   protected async dispatchJob(job: TestJob): Promise<void> {
     if (this.throwOnDispatch) {
       throw this.throwOnDispatch;

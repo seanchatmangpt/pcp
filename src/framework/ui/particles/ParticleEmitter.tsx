@@ -1,4 +1,3 @@
- 
 import React, { useMemo, useEffect } from 'react';
 import { StyleSheet, View, ColorValue } from 'react-native';
 import Animated, {

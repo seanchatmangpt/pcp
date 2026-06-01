@@ -13,7 +13,7 @@ import { canonicalStringify } from '@/src/lib/crypto/receipts';
  * quantum-resistant identity verification.
  */
 export class PostQuantumZkEngine extends ZkEngine implements PqZkProvider {
-  constructor() {
+  public constructor() {
     super();
   }
 

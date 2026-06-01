@@ -294,7 +294,7 @@ describe('Membrane Framework', () => {
       const target = { a: 1 };
       const proxy = ProxyFactory.wrap(target, membrane);
       // triggering a get from inside the trap triggers the activeTrap skip logic
-      proxy.a;
+      void proxy.a;
     });
   });
 

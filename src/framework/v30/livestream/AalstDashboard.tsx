@@ -3,26 +3,9 @@ import { View, Text, FlatList, StyleSheet, ListRenderItemInfo } from 'react-nati
 import { useAalstStream, AalstEvent } from './useAalstStream';
 
 const PetriNetViz: React.FC<{ payload: string }> = ({ payload }) => {
+  let data;
   try {
-    const data = JSON.parse(payload);
-    return (
-      <View style={styles.petriContainer} testID="petri-net-viz">
-        <Text style={styles.vizTitle}>Real-time Petri Net Visualization</Text>
-        <View style={styles.nodesContainer}>
-          {data.places?.map((p: any) => (
-            <View key={p.id} style={styles.place}>
-              <Text style={styles.placeText}>{p.id}</Text>
-              {p.tokens > 0 && <View style={styles.token} />}
-            </View>
-          ))}
-          {data.transitions?.map((t: any) => (
-            <View key={t.id} style={[styles.transition, t.enabled && styles.transitionEnabled]}>
-              <Text style={styles.transitionText}>{t.id}</Text>
-            </View>
-          ))}
-        </View>
-      </View>
-    );
+    data = JSON.parse(payload);
   } catch (e) {
     return (
       <View style={styles.petriContainer} testID="petri-net-viz">
@@ -31,6 +14,24 @@ const PetriNetViz: React.FC<{ payload: string }> = ({ payload }) => {
       </View>
     );
   }
+  return (
+    <View style={styles.petriContainer} testID="petri-net-viz">
+      <Text style={styles.vizTitle}>Real-time Petri Net Visualization</Text>
+      <View style={styles.nodesContainer}>
+        {data.places?.map((p: any) => (
+          <View key={p.id} style={styles.place}>
+            <Text style={styles.placeText}>{p.id}</Text>
+            {p.tokens > 0 && <View style={styles.token} />}
+          </View>
+        ))}
+        {data.transitions?.map((t: any) => (
+          <View key={t.id} style={[styles.transition, t.enabled && styles.transitionEnabled]}>
+            <Text style={styles.transitionText}>{t.id}</Text>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
 };
 
 export const AalstDashboard: React.FC = () => {

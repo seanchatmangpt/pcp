@@ -11,7 +11,6 @@ let storage: {
   delete: (k: string) => void;
 };
 try {
-   
   const { MMKV: MMKVClass } = require('react-native-mmkv');
   storage = new MMKVClass({ id: 'pcp-theme-storage' });
 } catch {
