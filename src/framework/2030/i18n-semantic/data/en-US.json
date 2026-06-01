@@ -1,0 +1,29 @@
+{
+  "@context": "https://pcp.framework/2030/i18n",
+  "@type": "CulturalContext",
+  "culture": "en-US",
+  "orientation": "ltr",
+  "aesthetic": {
+    "spacingMultiplier": 1.0,
+    "fontFamily": "System"
+  },
+  "mappings": {
+    "auth.login": {
+      "intent": "action.authenticate",
+      "text": "Log In",
+      "icon": "login",
+      "layout": "ltr"
+    },
+    "auth.signup": {
+      "intent": "action.onboarding",
+      "text": "Sign Up",
+      "icon": "person-add",
+      "layout": "ltr"
+    },
+    "welcome.message": {
+      "intent": "greeting",
+      "text": "Welcome back, {name}!",
+      "icon": "hand-wave"
+    }
+  }
+}

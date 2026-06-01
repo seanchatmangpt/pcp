@@ -17,10 +17,6 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@truex/unjucks": "1.0.0",
-    "@truex/pictl": "1.0.0",
-    "@truex/pm4wasm": "1.0.0",
-    "@truex/zkp": "1.0.0",
     "@expo/vector-icons": "^15.0.2",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@supabase/supabase-js": "^2.75.0",
@@ -40,6 +36,7 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-native": "0.85.3",
+    "react-native-gesture-handler": "^3.0.0",
     "react-native-mmkv": "^4.3.1",
     "react-native-reanimated": "4.3.1",
     "react-native-safe-area-context": "~5.7.0",
@@ -53,10 +50,14 @@
   },
   "devDependencies": {
     "@babel/core": "^7.29.0",
+    "@babel/preset-env": "^7.29.7",
+    "@babel/preset-typescript": "^7.29.7",
+    "@react-native/jest-preset": "^0.85.3",
     "@testing-library/react-native": "^13.3.3",
     "@types/jest": "^29.5.14",
     "@types/node": "^25.9.1",
     "@types/react": "~19.2.15",
+    "babel-jest": "^30.4.1",
     "babel-preset-expo": "~56.0.0",
     "citty": "^0.2.2",
     "consola": "^3.4.2",
@@ -73,6 +74,8 @@
     "prettier": "^3.8.3",
     "react-test-renderer": "^19.2.3",
     "supabase": "^2.101.0",
+    "ts-jest": "^29.4.11",
+    "ts-node": "^10.9.2",
     "typescript": "^6.0.3"
   }
 }

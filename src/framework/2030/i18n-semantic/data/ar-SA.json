@@ -1,0 +1,29 @@
+{
+  "@context": "https://pcp.framework/2030/i18n",
+  "@type": "CulturalContext",
+  "culture": "ar-SA",
+  "orientation": "rtl",
+  "aesthetic": {
+    "spacingMultiplier": 1.2,
+    "fontFamily": "Traditional Arabic"
+  },
+  "mappings": {
+    "auth.login": {
+      "intent": "action.authenticate",
+      "text": "تسجيل الدخول",
+      "icon": "login-variant",
+      "layout": "rtl"
+    },
+    "auth.signup": {
+      "intent": "action.onboarding",
+      "text": "إنشاء حساب",
+      "icon": "account-plus",
+      "layout": "rtl"
+    },
+    "welcome.message": {
+      "intent": "greeting",
+      "text": "مرحباً بك مجدداً، {name}!",
+      "icon": "hand-peace"
+    }
+  }
+}
