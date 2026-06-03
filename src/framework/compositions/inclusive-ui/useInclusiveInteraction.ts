@@ -61,9 +61,10 @@ export function useInclusiveInteraction(
   // 3. Integrate Voice Intents
   const { registerIntents, unregisterIntents } = useVoiceIntent();
 
+  const voiceCommandsString = JSON.stringify(options.voiceCommands || []);
   const memoizedVoiceCommands = useMemo(() => {
     return options.voiceCommands;
-  }, [options.voiceCommands]);
+  }, [voiceCommandsString]);
 
   const actionRef = useRef(options.action);
   useEffect(() => {

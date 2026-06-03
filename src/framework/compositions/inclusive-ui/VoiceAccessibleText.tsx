@@ -69,9 +69,10 @@ export const VoiceAccessibleText: React.FC<VoiceAccessibleTextProps> = ({
   // 3. Voice Intent Integration
   const { registerIntents, unregisterIntents } = useVoiceIntent();
 
+  const extraVoiceCommandsString = JSON.stringify(extraVoiceCommands || []);
   const memoizedExtraCommands = useMemo(() => {
     return extraVoiceCommands;
-  }, [extraVoiceCommands]);
+  }, [extraVoiceCommandsString]);
 
   const onVoiceFocusRef = useRef(onVoiceFocus);
   useEffect(() => {

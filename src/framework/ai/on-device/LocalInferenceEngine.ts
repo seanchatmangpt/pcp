@@ -317,7 +317,7 @@ function generateInferenceReceipt(
     previousHash,
     payloadHash,
     hashTier,
-    issuedAt: new Date().toISOString(),
+    issuedAt: completedAt,
     onDevice: true as const,
   });
 }
