@@ -1,4 +1,4 @@
-import * as crypto from 'crypto';
+import { sha256, hmacSha256 } from '../../../../lib/crypto/receipts';
 
 export interface ZKPIdentity {
   proof: string;
@@ -44,8 +44,8 @@ export class RealityReceiptGenerator {
   public generate(data: RealityReceiptData): RealityReceipt {
     this.validateData(data);
     const serializedData = this.serializeData(data);
-    const hash = crypto.createHash('sha256').update(serializedData).digest('hex');
-    const signature = crypto.createHmac('sha256', this.systemSecret).update(hash).digest('hex');
+    const hash = sha256(serializedData);
+    const signature = hmacSha256(this.systemSecret, hash);
 
     return {
       version: '1.0.0',
@@ -67,25 +67,23 @@ export class RealityReceiptGenerator {
     }
 
     const serializedData = this.serializeData(receipt.data);
-    const expectedHash = crypto.createHash('sha256').update(serializedData).digest('hex');
+    const expectedHash = sha256(serializedData);
 
     if (expectedHash !== receipt.hash) {
       return false;
     }
 
-    const expectedSignature = crypto
-      .createHmac('sha256', this.systemSecret)
-      .update(expectedHash)
-      .digest('hex');
+    const expectedSignature = hmacSha256(this.systemSecret, expectedHash);
 
-    try {
-      return crypto.timingSafeEqual(
-        Buffer.from(expectedSignature, 'hex'),
-        Buffer.from(receipt.signature, 'hex')
-      );
-    } catch (e) {
+    if (expectedSignature.length !== receipt.signature.length) {
       return false;
     }
+
+    let diff = 0;
+    for (let i = 0; i < expectedSignature.length; i++) {
+      diff |= expectedSignature.charCodeAt(i) ^ receipt.signature.charCodeAt(i);
+    }
+    return diff === 0;
   }
 
   public serialize(receipt: RealityReceipt): string {

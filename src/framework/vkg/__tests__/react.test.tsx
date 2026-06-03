@@ -4,17 +4,7 @@ import { render, screen, renderHook, waitFor } from '@testing-library/react-nati
 import { VkgProvider, useVkg, useGraphTraversal } from '../react';
 import { DataFactory } from '../rdf';
 
-// We mock the base implementation to ensure our facade correctly wraps and delegates.
-jest.mock('../../../components/VkgProvider', () => {
-  const React = require('react');
-  const { View } = require('react-native');
-  return {
-    VkgProvider: ({ children }: { children: React.ReactNode }) => (
-      <View testID="base-provider">{children}</View>
-    ),
-    useVkgEngine: () => ({ isMockEngine: true }),
-  };
-});
+// Facade VkgProvider is tested directly with self-contained VkgContext.
 
 describe('VKG Framework - React Context', () => {
   it('renders the VkgProvider wrapper', () => {

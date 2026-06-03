@@ -3,27 +3,29 @@ import { mmkvStorage, mmkvInstance, createIsolatedMMKVStorage } from './mmkvStor
 // Mock react-native-mmkv with dynamic isolated instances
 jest.mock('react-native-mmkv', () => {
   const instances: Record<string, any> = {};
+  const createInstance = (options?: { id?: string }) => {
+    const id = options?.id || 'default';
+    if (!instances[id]) {
+      const store: Record<string, string> = {};
+      instances[id] = {
+        id,
+        set: jest.fn((key: string, val: string) => {
+          store[key] = val;
+        }),
+        getString: jest.fn((key: string) => {
+          return store[key] !== undefined ? store[key] : undefined;
+        }),
+        remove: jest.fn((key: string) => {
+          delete store[key];
+        }),
+        _store: store,
+      };
+    }
+    return instances[id];
+  };
   return {
-    createMMKV: jest.fn((options?: { id?: string }) => {
-      const id = options?.id || 'default';
-      if (!instances[id]) {
-        const store: Record<string, string> = {};
-        instances[id] = {
-          id,
-          set: jest.fn((key: string, val: string) => {
-            store[key] = val;
-          }),
-          getString: jest.fn((key: string) => {
-            return store[key] !== undefined ? store[key] : undefined;
-          }),
-          remove: jest.fn((key: string) => {
-            delete store[key];
-          }),
-          _store: store,
-        };
-      }
-      return instances[id];
-    }),
+    createMMKV: jest.fn((options) => createInstance(options)),
+    MMKV: jest.fn().mockImplementation((options) => createInstance(options)),
   };
 });
 

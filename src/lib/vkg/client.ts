@@ -8,8 +8,7 @@ import { db } from '../db/db';
 import { quads } from '../db/schema';
 import { eq, and, SQL } from 'drizzle-orm';
 import { Term, NamedNode, BlankNode, Literal, DefaultGraph, Quad, DataFactory } from './rdf';
-// mock supabase
-const supabase: any = {};
+import { supabase } from '@/lib/supabase';
 type SyncEngine = any;
 // mock sync
 
@@ -19,6 +18,7 @@ type SyncEngine = any;
  */
 export class VKGRdfSyncEngine implements SyncEngine {
   protected supportedJobTypes = ['RDF_ADD_QUAD', 'RDF_REMOVE_QUAD'];
+  public async queueJob(job: any): Promise<void> {}
 
   protected async dispatchJob(job: { jobType: string; payload: string; entityId: string | null }): Promise<void> {
     const rawQuad = JSON.parse(job.payload);

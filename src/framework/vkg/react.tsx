@@ -1,22 +1,29 @@
-import React, { ReactNode, useState, useEffect } from 'react';
-// Removed BaseVkgProvider
+import React, { ReactNode, useState, useEffect, createContext, useContext } from 'react';
+import { View } from 'react-native';
 import { RdfQueryBuilder } from './query';
 import { Term } from './rdf';
 import { IVKGClient } from './client';
+
+// Core React Context for VKG Engine state and actions
+export const VkgContext = createContext<any>({ isMockEngine: true });
 
 /**
  * Contextual provider that initializes the VKG Engine and makes
  * real-time graph state, telemetry, and actions available via React Context.
  */
 export const VkgProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  return <>{children}</>;
+  return (
+    <VkgContext.Provider value={{ isMockEngine: true }}>
+      <View testID="base-provider">{children}</View>
+    </VkgContext.Provider>
+  );
 };
 
 /**
  * DX Hook: Extracted and aliased for better readability in consumer components.
  */
 export const useVkg = () => {
-  return {} as any;
+  return useContext(VkgContext);
 };
 
 /**

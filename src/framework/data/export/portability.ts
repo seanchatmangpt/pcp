@@ -1,8 +1,10 @@
-const documentDirectory = 'stub_dir';
-const cacheDirectory = 'stub_cache';
-const readAsStringAsync = async (...args: any[]) => '';
-const writeAsStringAsync = async (...args: any[]) => {};
-const EncodingType = { Base64: 'base64' };
+import * as FileSystem from 'expo-file-system';
+import { EncodingType } from 'expo-file-system';
+
+const documentDirectory = (FileSystem as any).documentDirectory;
+const cacheDirectory = (FileSystem as any).cacheDirectory;
+const readAsStringAsync = (FileSystem as any).readAsStringAsync;
+const writeAsStringAsync = (FileSystem as any).writeAsStringAsync;
 import { Share } from 'react-native';
 import { mmkvInstance } from '@/src/lib/store/mmkvStorage';
 import { DATABASE_NAME } from '@/src/lib/db/db';
@@ -28,7 +30,7 @@ export const Portability = {
 
     const mmkvKeys = mmkvInstance.getAllKeys();
     const mmkvState: Record<string, string> = {};
-    mmkvKeys.forEach((key) => {
+    mmkvKeys.forEach((key: string) => {
       const val = mmkvInstance.getString(key);
       if (val) mmkvState[key] = val;
     });

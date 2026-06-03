@@ -22,6 +22,12 @@ jest.mock('../AutoFixer', () => {
 // Mock MMKV
 jest.mock('react-native-mmkv', () => {
   return {
+    createMMKV: jest.fn(() => ({
+      set: jest.fn(),
+      getString: jest.fn(),
+      remove: jest.fn(),
+      clearAll: jest.fn(),
+    })),
     MMKV: jest.fn().mockImplementation(() => ({
       clearAll: jest.fn(),
     })),

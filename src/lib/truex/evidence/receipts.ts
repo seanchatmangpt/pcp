@@ -1,5 +1,6 @@
 export {
   generateReceipt,
   verifyReceiptIntegrity,
-  verifyReceiptChain
+  verifyReceiptChain,
+  toReceiptShapeTs
 } from '../hook-otp/receipts';

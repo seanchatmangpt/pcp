@@ -209,7 +209,7 @@ jest.mock('../../sync/syncEngine', () => {
       public pushChanges = jest.fn();
     },
   };
-});
+}, { virtual: true });
 
 const mockedDb = db as any;
 

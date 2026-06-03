@@ -9,9 +9,7 @@ import { generateReceiptHash } from '../crypto/receipts';
 import { VirtualKnowledgeGraphClient } from '../vkg/client';
 import { ActorRegistry } from './registry';
 import { ActorSupervisor } from './supervision';
-// mock syncEngine
-// mock supabase
-const supabase: any = {};
+import { supabase } from '@/lib/supabase';
 type SyncEngine = any;
 import { DataFactory, Quad } from '../vkg/rdf';
 import {

@@ -10,6 +10,7 @@
 import { SemanticCommand } from '../agent-native/types';
 import { MembraneConfig, MembraneReceipt } from '../../membrane/types';
 import { PqSignature } from '../identity/types';
+import { OcelLogTs, toOcelLogTs } from '@/src/lib/truex/evidence/ocel';
 
 // ==========================================
 // 1. OCEL 2.0 Type Definitions
@@ -688,3 +689,8 @@ export function fuzzLog(log: OcelLog, mutationType: MutationType, targetCaseId?:
 
   return fuzzed;
 }
+
+export function generateLogTs(traces: AgentExecutionTrace[]): OcelLogTs {
+  return toOcelLogTs(generateLog(traces));
+}
+

@@ -12,14 +12,12 @@ export class ExtremeFusionSyncEngine<TJob extends SyncJobBase> extends FusionSyn
   private satelliteAdapter?: ExtremeSyncAdapter;
   private loraAdapter?: ExtremeSyncAdapter;
   private quantumAdapter?: ExtremeSyncAdapter;
-  private _compression: any; // Accessed via config in constructor or captured
 
   constructor(config: ExtremeFusionSyncEngineConfig<TJob>) {
     super(config);
     this.satelliteAdapter = config.satelliteAdapter;
     this.loraAdapter = config.loraAdapter;
     this.quantumAdapter = config.quantumAdapter;
-    this._compression = config.compression;
 
     this.setupExtremeListeners();
   }
@@ -34,7 +32,7 @@ export class ExtremeFusionSyncEngine<TJob extends SyncJobBase> extends FusionSyn
         try {
           const workspace = this.getWorkspace(workspaceId);
           if (workspace) {
-            const decompressed = await this._compression.decompress(compressedPayload);
+            const decompressed = await this.compression.decompress(compressedPayload);
             const state = JSON.parse(decompressed) as LWWMapState<any>;
             workspace.receiveUpdate(state);
           }
@@ -72,7 +70,7 @@ export class ExtremeFusionSyncEngine<TJob extends SyncJobBase> extends FusionSyn
 
     const state = (workspace as any).crdtState;
     const serialized = JSON.stringify(state);
-    const compressed = await this._compression.compress(serialized);
+    const compressed = await this.compression.compress(serialized);
 
     const adapters = [this.satelliteAdapter, this.loraAdapter, this.quantumAdapter].filter(
       Boolean

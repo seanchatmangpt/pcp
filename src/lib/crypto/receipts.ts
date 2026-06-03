@@ -31,21 +31,21 @@ function stringToUtf8ByteArray(str: string): number[] {
  * Pure JavaScript implementation of SHA-256 standard hash function.
  * Avoids any platform-specific dependencies and works in React Native/Expo as well as Node.js.
  */
-export function sha256(message: string): string {
-  const bytes = stringToUtf8ByteArray(message);
+export function sha256Bytes(bytes: number[]): string {
   const bitLength = bytes.length * 8;
+  const tempBytes = [...bytes];
 
   // Pad the bytes block
-  bytes.push(0x80);
-  while (bytes.length % 64 !== 56) {
-    bytes.push(0);
+  tempBytes.push(0x80);
+  while (tempBytes.length % 64 !== 56) {
+    tempBytes.push(0);
   }
 
   // Append the 64-bit length (big-endian)
   const highBits = Math.floor(bitLength / 0x100000000);
   const lowBits = bitLength & 0xffffffff;
 
-  bytes.push(
+  tempBytes.push(
     (highBits >> 24) & 0xff,
     (highBits >> 16) & 0xff,
     (highBits >> 8) & 0xff,
@@ -75,14 +75,14 @@ export function sha256(message: string): string {
     return (value >>> amount) | (value << (32 - amount));
   }
 
-  for (let i = 0; i < bytes.length; i += 64) {
+  for (let i = 0; i < tempBytes.length; i += 64) {
     const w = new Array(64);
     for (let t = 0; t < 16; t++) {
       w[t] =
-        (bytes[i + t * 4] << 24) |
-        (bytes[i + t * 4 + 1] << 16) |
-        (bytes[i + t * 4 + 2] << 8) |
-        bytes[i + t * 4 + 3];
+        (tempBytes[i + t * 4] << 24) |
+        (tempBytes[i + t * 4 + 1] << 16) |
+        (tempBytes[i + t * 4 + 2] << 8) |
+        tempBytes[i + t * 4 + 3];
     }
 
     for (let t = 16; t < 64; t++) {
@@ -132,6 +132,44 @@ export function sha256(message: string): string {
     const unsignedVal = val < 0 ? val + 0x100000000 : val;
     return unsignedVal.toString(16).padStart(8, '0');
   }).join('');
+}
+
+export function sha256(message: string): string {
+  const bytes = stringToUtf8ByteArray(message);
+  return sha256Bytes(bytes);
+}
+
+export function hmacSha256(key: string, message: string): string {
+  let keyBytes = stringToUtf8ByteArray(key);
+  const msgBytes = stringToUtf8ByteArray(message);
+
+  const blockSize = 64;
+  if (keyBytes.length > blockSize) {
+    const keyHash = sha256(key);
+    keyBytes = [];
+    for (let i = 0; i < keyHash.length; i += 2) {
+      keyBytes.push(parseInt(keyHash.substr(i, 2), 16));
+    }
+  }
+
+  while (keyBytes.length < blockSize) {
+    keyBytes.push(0);
+  }
+
+  const ipad = new Array(blockSize);
+  const opad = new Array(blockSize);
+  for (let i = 0; i < blockSize; i++) {
+    ipad[i] = keyBytes[i] ^ 0x36;
+    opad[i] = keyBytes[i] ^ 0x5c;
+  }
+
+  const innerHashStr = sha256Bytes(ipad.concat(msgBytes));
+  const innerHashBytes: number[] = [];
+  for (let i = 0; i < innerHashStr.length; i += 2) {
+    innerHashBytes.push(parseInt(innerHashStr.substr(i, 2), 16));
+  }
+
+  return sha256Bytes(opad.concat(innerHashBytes));
 }
 
 /**

@@ -4,6 +4,9 @@
  * See [petri-net.ts](file:///Users/sac/pcpapp/src/framework/2030/process-mining/petri-net.ts) for details.
  */
 
+import { OcelLogTs, OcelObjectTs, OcelEventTs, OcelAttributeTs, OcelAttributeValueTs, EventObjectLinkTs } from '@/src/lib/truex/evidence/ocel';
+
+
 // Strongly typed representation of places and transitions
 export type Place = 'Queue' | 'Verifying' | 'Attesting' | 'Signing' | 'Receipts' | 'Verified';
 export type Transition = 'enqueue' | 'verifyZkp' | 'signEnclave' | 'signPq' | 'bindReceipt';
@@ -558,3 +561,72 @@ export function fuzzLogStream(options: FuzzOptions): OcelLog {
 
   return emitOcel2Log(events, objects);
 }
+
+export function petriNetOcelToOcelLogTs(log: OcelLog): OcelLogTs {
+  const objects: OcelObjectTs[] = [];
+  const events: OcelEventTs[] = [];
+  const e2o: EventObjectLinkTs[] = [];
+
+  for (const [id, obj] of Object.entries(log['ocel:objects'])) {
+    const attributes: OcelAttributeTs[] = Object.entries(obj['ocel:vmap'] || {}).map(([key, val]) => {
+      let attrVal: OcelAttributeValueTs;
+      if (typeof val === 'string') {
+        attrVal = { type: 'String', value: val };
+      } else if (typeof val === 'number') {
+        attrVal = { type: 'Float', value: val };
+      } else if (typeof val === 'boolean') {
+        attrVal = { type: 'Boolean', value: val };
+      } else {
+        attrVal = { type: 'String', value: JSON.stringify(val) };
+      }
+      return { key, value: attrVal };
+    });
+    objects.push({
+      id,
+      object_type: obj['ocel:type'],
+      attributes,
+    });
+  }
+
+  for (const [id, evt] of Object.entries(log['ocel:events'])) {
+    const attributes: OcelAttributeTs[] = Object.entries(evt['ocel:vmap'] || {}).map(([key, val]) => {
+      let attrVal: OcelAttributeValueTs;
+      if (typeof val === 'string') {
+        attrVal = { type: 'String', value: val };
+      } else if (typeof val === 'number') {
+        attrVal = { type: 'Float', value: val };
+      } else if (typeof val === 'boolean') {
+        attrVal = { type: 'Boolean', value: val };
+      } else {
+        attrVal = { type: 'String', value: JSON.stringify(val) };
+      }
+      return { key, value: attrVal };
+    });
+
+    const timestampNs = evt['ocel:timestamp'] ? BigInt(new Date(evt['ocel:timestamp']).getTime()) * 1000000n : null;
+
+    events.push({
+      id,
+      activity: evt['ocel:activity'],
+      timestamp_ns: timestampNs,
+      attributes,
+    });
+
+    for (const objId of evt['ocel:omap']) {
+      e2o.push({
+        event_id: id,
+        object_id: objId,
+        qualifier: 'related',
+      });
+    }
+  }
+
+  return {
+    objects,
+    events,
+    e2o,
+    o2o: [],
+    changes: [],
+  };
+}
+

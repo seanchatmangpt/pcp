@@ -1,4 +1,4 @@
-import { OcelLog, OcelEvent, OcelObject } from '@/src/lib/truex/evidence/ocel';
+import { OcelLog, OcelEvent, OcelObject, OcelLogTs, toOcelLogTs } from '@/src/lib/truex/evidence/ocel';
 
 /**
  * Definition of a Petri Net structure for process mining conformance checking.
@@ -272,14 +272,13 @@ export function replayTrace(
 export function extractTraces(
   log: OcelLog
 ): Record<string, { scenario: string; activities: string[] }> {
-  const caseObjects = Object.values(log.objects).filter(
-    (obj) => obj.type === 'Command' || obj.type === 'Request'
+  const caseObjects = Object.entries(log.objects).filter(
+    ([_, obj]) => obj.type === 'Command' || obj.type === 'Request'
   );
 
   const traces: Record<string, { scenario: string; activities: string[] }> = {};
 
-  for (const caseObj of caseObjects) {
-    const caseId = caseObj.id;
+  for (const [caseId, caseObj] of caseObjects) {
     const scenario = caseObj.attributes.scenario || 'unknown';
 
     // Find all events associated with this case object ID
@@ -425,3 +424,8 @@ export function generateFuzzedOcelLog(): OcelLog {
 
   return { objects, events };
 }
+
+export function generateFuzzedOcelLogTs(): OcelLogTs {
+  return toOcelLogTs(generateFuzzedOcelLog());
+}
+

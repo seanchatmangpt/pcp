@@ -2,6 +2,7 @@ import {
   checkConformance,
   replayTrace,
   generateFuzzedOcelLog,
+  generateFuzzedOcelLogTs,
   AGENT_PETRI_NET,
 } from '../adversarial-fuzzer';
 
@@ -53,6 +54,18 @@ describe('Adversarial Process Mining Fuzzer & Conformance Checker', () => {
         );
         expect(matchingObject).toBeDefined();
       }
+    });
+
+    it('should generate a valid OCEL 2.0 TS log containing all scenarios', () => {
+      const logTs = generateFuzzedOcelLogTs();
+      expect(logTs).toBeDefined();
+      expect(logTs.objects).toBeDefined();
+      expect(logTs.events).toBeDefined();
+      expect(logTs.e2o).toBeDefined();
+
+      const pcpAgentObj = logTs.objects.find((o) => o.id === 'agent_pcp');
+      expect(pcpAgentObj).toBeDefined();
+      expect(pcpAgentObj?.object_type).toBe('Agent');
     });
   });
 

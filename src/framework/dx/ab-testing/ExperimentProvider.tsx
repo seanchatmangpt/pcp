@@ -1,8 +1,14 @@
 import React, { createContext, useContext, useEffect, useState, useMemo, useCallback } from 'react';
-import { createMMKV } from 'react-native-mmkv';
 import { ExperimentConfig, ExperimentContextValue } from './types';
+import { createMMKV } from 'react-native-mmkv';
 
 const AB_STORAGE_ID = 'pcp-ab-testing';
+
+interface StorageInterface {
+  getString(key: string): string | undefined;
+  set(key: string, value: string): void;
+}
+
 const storage = createMMKV({ id: AB_STORAGE_ID });
 
 const ExperimentContext = createContext<ExperimentContextValue | undefined>(undefined);

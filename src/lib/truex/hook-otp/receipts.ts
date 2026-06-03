@@ -1,5 +1,6 @@
 import { HookReceipt, HookActorRef } from './types';
 import { sha256, stringifyActorRef } from './actorRef';
+import type { ReceiptShapeTs } from '../../../types/bindings';
 
 export function generateReceipt(opts: {
   tenantId: string;
@@ -76,3 +77,15 @@ export function verifyReceiptChain(receipts: HookReceipt[]): boolean {
   }
   return true;
 }
+
+export function toReceiptShapeTs(receipt: HookReceipt): ReceiptShapeTs {
+  return {
+    case_id: receipt.hookRunId,
+    process_hash: receipt.receiptHash,
+    parent_block_hash: receipt.previousReceiptHash,
+    block_hash: receipt.receiptHash,
+    timestamp_ns: receipt.timestamp ? new Date(receipt.timestamp).getTime() * 1000000 : Date.now() * 1000000,
+    fitness: 1.0,
+  };
+}
+

@@ -28,7 +28,7 @@ export class FusionSyncEngine<TJob extends SyncJobBase> {
   private workspaces = new Map<string, CollaborativeWorkspace<any>>();
   private standardEngine: FrameworkSyncEngine<TJob>;
   private meshEngine: MeshSyncEngine;
-  private compression: CompressionStrategy;
+  protected compression: CompressionStrategy;
 
   constructor(config: FusionSyncEngineConfig<TJob>) {
     this.standardEngine = config.standardEngine;

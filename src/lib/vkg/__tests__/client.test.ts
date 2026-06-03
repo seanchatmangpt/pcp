@@ -2,7 +2,7 @@ import { VirtualKnowledgeGraphClient, VKGRdfSyncEngine } from '../client';
 import { DataFactory, Quad } from '../rdf';
 
 import { db } from '../../db/db';
-const supabase: any = {};
+import { supabase } from '@/lib/supabase';
 
 // Mock the database client structure
 jest.mock('../../db/db', () => {
@@ -81,7 +81,7 @@ jest.mock('../../sync/syncEngine', () => {
       public pushChanges = jest.fn();
     },
   };
-});
+}, { virtual: true });
 
 const mockedDb = db as any;
 const mockedSupabase = supabase as any;
@@ -92,6 +92,7 @@ describe('VirtualKnowledgeGraphClient (RDF.js Spec)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     client = new VirtualKnowledgeGraphClient();
+    jest.spyOn(client.getSyncEngine() as any, 'queueJob').mockImplementation(mockQueueJob);
   });
 
   describe('getSyncEngine', () => {

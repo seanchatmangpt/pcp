@@ -1,7 +1,7 @@
 /// <reference types="node" />
 import * as fs from 'fs';
 import * as path from 'path';
-const verifyReleaseGate: any = {};
+import { verifyReleaseGate } from './verify-release-gate';
 
 describe('verify-release-gate script', () => {
   const testManifestPath = path.resolve(process.cwd(), 'src/lib/crypto', 'test_proof_manifest.json');

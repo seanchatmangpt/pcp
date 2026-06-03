@@ -6,13 +6,6 @@ export interface StorageAdapter {
   instance: MMKV;
 }
 
-/**
- * Creates an isolated Zustand storage adapter backed by a unique MMKV database instance.
- * Guarantees strict instance isolation at the storage layer for local-first caches.
- *
- * @param storeId The unique identifier for the storage instance.
- * @returns A Zustand StateStorage adapter and its underlying MMKV instance.
- */
 export function createStorageAdapter(storeId: string): StorageAdapter {
   if (!storeId || storeId.trim() === '') {
     throw new Error('storeId must be a non-empty string for isolated MMKV storage');

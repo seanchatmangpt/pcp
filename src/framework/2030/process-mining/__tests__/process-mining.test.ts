@@ -252,8 +252,8 @@ describe('Pcp 2030 Process Mining Framework Tests', () => {
         );
       }
 
-      const w1 = [['enqueue', 'bindReceipt']];
-      const w2 = [['enqueue', 'verifyZkp']];
+      const w1: Transition[][] = [['enqueue', 'bindReceipt']];
+      const w2: Transition[][] = [['enqueue', 'verifyZkp']];
       const driftResult = ProcessDriftDetector.detectDfrDrift(w1, w2, 0.1);
 
       expect(driftResult.logs.length).toBeGreaterThan(0);
