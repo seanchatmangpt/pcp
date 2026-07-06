@@ -1,0 +1,7 @@
+/*
+ * global.css — restored for `expo export --platform web`.
+ * Imported by src/app/_layout.tsx; the original file was missing from the
+ * repo. NativeWind v5 / Tailwind v4 entrypoint; app-specific design tokens
+ * are follow-up work.
+ */
+@import 'tailwindcss';
