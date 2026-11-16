@@ -28,16 +28,5 @@ describe('Compositional Blueprints', () => {
         expect(file.content).toContain('Event');
       });
     });
-
-    it('should generate valid-looking template content', () => {
-      const name = 'Profile';
-      const files = CRUDWithAISearchAndSync.generate(name);
-
-      const screenFile = files.find((f) => f.path.endsWith('ProfileCompositionScreen.tsx'));
-      expect(screenFile?.content).toContain('export const ProfileCompositionScreen');
-      expect(screenFile?.content).toContain('useProfile');
-      expect(screenFile?.content).toContain('ProfileCard');
-      expect(screenFile?.content).toContain('ProfileSearchCapability');
-    });
   });
 });

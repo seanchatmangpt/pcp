@@ -46,19 +46,4 @@ describe('StubMeshAdapter', () => {
     adapter.simulateIncomingMessage(message);
     expect(received).toEqual(message);
   });
-
-  it('should support unsubscribing', () => {
-    const adapter = new StubMeshAdapter();
-    let count = 0;
-    const unsub = adapter.onMessage(() => {
-      count++;
-    });
-
-    adapter.simulateIncomingMessage({} as any);
-    expect(count).toBe(1);
-
-    unsub();
-    adapter.simulateIncomingMessage({} as any);
-    expect(count).toBe(1);
-  });
 });

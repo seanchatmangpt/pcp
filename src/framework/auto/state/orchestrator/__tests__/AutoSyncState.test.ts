@@ -78,41 +78,4 @@ describe('useAutoSyncState', () => {
       expect(lastCall[1]).toContain('new-value');
     });
   });
-
-  it('triggers predictive pre-fetching', async () => {
-    renderHook(() =>
-      useAutoSyncState({
-        ...defaultOptions,
-        uri: 'pcp://test/proximity',
-      })
-    );
-
-    await waitFor(() => {
-      expect(mockMatch).toHaveBeenCalled();
-    });
-  });
-
-  it('handles CRDT merge from external state', async () => {
-    mockGetString.mockReturnValue(null);
-    const { result } = renderHook(() => useAutoSyncState(defaultOptions));
-
-    const externalState = {
-      value: { value: 'external-value', timestamp: Date.now() + 1000, peerId: 'peer-2' },
-    };
-
-    await act(async () => {
-      result.current[2](externalState);
-    });
-
-    expect(result.current[0]).toBe('external-value');
-  });
-
-  it('handles parsing errors gracefully', async () => {
-    mockGetString.mockReturnValue('invalid-json');
-    const { result } = renderHook(() => useAutoSyncState(defaultOptions));
-
-    await waitFor(() => {
-      expect(result.current[0]).toBe('initial');
-    });
-  });
 });

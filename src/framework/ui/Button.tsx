@@ -146,6 +146,7 @@ export const Button = forwardRef<View, ButtonProps>(
       'flex-row items-center justify-center',
       variantStyles[variant],
       sizeStyles[size],
+      (size === 'sm' || size === 'icon') && 'min-h-[44px]',
       (disabled || isLoading) && 'opacity-50',
       className
     );
@@ -160,7 +161,9 @@ export const Button = forwardRef<View, ButtonProps>(
         disabled={disabled || isLoading}
         className={containerClasses}
         style={animatedStyle}
-        {...props}>
+        accessibilityRole="button"
+        {...props}
+      >
         {isLoading ? (
           <Text className={cn(textClasses, 'mr-2')}>Loading...</Text> // Simplified loading state
         ) : null}

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { cn } from '../../utils/cn';
 import { Text, TextProps } from './Themed';
 

@@ -3,10 +3,10 @@ import { AutonomicQAEngine } from './AutonomicQAEngine';
 
 /**
  * LieDetector
- * 
+ *
  * An active, runtime assertion engine designed to ruthlessly find and fix "lies"
  * (deviations from stated autonomic invariant behaviors) in the live iOS simulator environment.
- * 
+ *
  * If a lie is found, it is logged and immediately fixed to ensure truth.
  */
 export class LieDetector {
@@ -66,10 +66,12 @@ export class LieDetector {
   private verifyEntropyLimits() {
     const agents = this.swarm.getAgents();
     let lieFound = false;
-    agents.forEach(agent => {
+    agents.forEach((agent) => {
       if (agent.componentsRefactored > 100) {
         lieFound = true;
-        console.warn(`[LIE DETECTED] Agent ${agent.id} entropy is ${agent.componentsRefactored}, exceeding limit of 100!`);
+        console.warn(
+          `[LIE DETECTED] Agent ${agent.id} entropy is ${agent.componentsRefactored}, exceeding limit of 100!`
+        );
         // Fix the lie by forcefully overriding the internal metrics (simulated clamping)
         // Since metrics are readonly in the interface, we emit an event or force the engine
         // In this implementation, we will use a backdoor or assume the QA Engine's `clampEntropy` will run.
@@ -78,7 +80,7 @@ export class LieDetector {
 
     if (lieFound) {
       console.log(`[LIE FIXED] Forcing QA Cycle to clamp entropy.`);
-      this.qaEngine.runQACycle().catch(e => console.error(e));
+      this.qaEngine.runQACycle().catch((e) => console.error(e));
     }
   }
 
@@ -91,17 +93,19 @@ export class LieDetector {
     const agents = this.swarm.getAgents();
     let lieFound = false;
 
-    agents.forEach(agent => {
+    agents.forEach((agent) => {
       const cp = this.qaEngine.getLatestCheckpoint(agent.id);
       if (cp && currentEpoch - cp.epoch > MAX_AGE_MS) {
         lieFound = true;
-        console.warn(`[LIE DETECTED] Agent ${agent.id} has a stale checkpoint (age: ${currentEpoch - cp.epoch}ms)!`);
+        console.warn(
+          `[LIE DETECTED] Agent ${agent.id} has a stale checkpoint (age: ${currentEpoch - cp.epoch}ms)!`
+        );
       }
     });
 
     if (lieFound) {
       console.log(`[LIE FIXED] Forcing new checkpoint captures for stale agents.`);
-      this.qaEngine.runQACycle().catch(e => console.error(e));
+      this.qaEngine.runQACycle().catch((e) => console.error(e));
     }
   }
 
@@ -111,11 +115,11 @@ export class LieDetector {
   private verifyStatusIntegrity() {
     const validStatuses = ['idle', 'refactoring', 'blocked', 'coordinating'];
     const agents = this.swarm.getAgents();
-    agents.forEach(agent => {
+    agents.forEach((agent) => {
       if (!validStatuses.includes(agent.status)) {
         console.warn(`[LIE DETECTED] Agent ${agent.id} has invalid status '${agent.status}'!`);
         console.log(`[LIE FIXED] Forcing QA Cycle to repair status.`);
-        this.qaEngine.runQACycle().catch(e => console.error(e));
+        this.qaEngine.runQACycle().catch((e) => console.error(e));
       }
     });
   }

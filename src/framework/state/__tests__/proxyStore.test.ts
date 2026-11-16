@@ -1,5 +1,6 @@
 import { createProxyStore } from '../proxyStore';
 import { MembraneContext } from '@/src/lib/membrane/context';
+import { Interceptors } from '@/src/lib/membrane/interceptors';
 
 interface TestTarget {
   count: number;
@@ -14,6 +15,9 @@ interface TestStore {
 }
 
 describe('createProxyStore', () => {
+  beforeEach(() => {
+    Interceptors.clear();
+  });
   it('should create a governed proxy and a bound store that syncs mutations', () => {
     const context = new MembraneContext({
       mode: 'strict',

@@ -506,8 +506,8 @@ export class PredictiveActionLayer {
         }
         this._notify();
       })
-      .catch(() => {
-        // Pre-computation failures are non-fatal
+      .catch((error) => {
+        console.warn('[PredictiveActionLayer] Pre-computation failed (non-fatal):', error);
       });
   }
 

@@ -68,6 +68,7 @@ export interface VoiceContextValue {
   registerIntents: (intents: VoiceIntent[]) => void;
   unregisterIntents: (intentIds: string[]) => void;
   activeIntents: VoiceIntent[];
+  getActiveIntents: () => VoiceIntent[];
   isListening: boolean;
   setIsListening: (value: boolean) => void;
 }

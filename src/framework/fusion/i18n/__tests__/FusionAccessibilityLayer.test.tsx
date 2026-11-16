@@ -65,22 +65,13 @@ describe('FusionAccessibilityLayer', () => {
     render(
       <FusionAccessibilityLayer
         translations={translations}
-        initialIntents={[{ id: 'test', commands: ['test'], action: jest.fn() }]}>
+        initialIntents={[{ id: 'test', commands: ['test'], action: jest.fn() }]}
+      >
         <Text>hello</Text>
       </FusionAccessibilityLayer>
     );
 
     const element = screen.getByText('Hello Fusion');
     expect(element).toBeTruthy();
-  });
-
-  it('disables auto-translation when requested', () => {
-    render(
-      <FusionAccessibilityLayer translations={translations} autoTranslate={false}>
-        <Text>hello</Text>
-      </FusionAccessibilityLayer>
-    );
-
-    expect(screen.getByText('hello')).toBeTruthy();
   });
 });

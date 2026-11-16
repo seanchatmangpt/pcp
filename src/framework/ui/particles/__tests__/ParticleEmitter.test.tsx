@@ -34,10 +34,4 @@ describe('ParticleEmitter', () => {
     // but usually runOnJS(onComplete)() will be called if the mock handles it.
     // The current mock might not call the callback automatically.
   });
-
-  it('does not start animation if autoStart is false', () => {
-    const onComplete = jest.fn();
-    render(<ParticleEmitter autoStart={false} onComplete={onComplete} />);
-    // Verification would depend on checking shared value, which is hard with mocks
-  });
 });

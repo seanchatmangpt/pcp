@@ -64,7 +64,8 @@ export const ScalePress: React.FC<ScalePressProps> = ({
       {...pressableProps}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
-      style={[containerStyle, animatedStyle]}>
+      style={[containerStyle, animatedStyle]}
+    >
       {children}
     </AnimatedPressable>
   );

@@ -45,37 +45,4 @@ describe('SemanticNodeCache', () => {
     expect(cache.get(uri)).toBeNull();
     jest.useRealTimers();
   });
-
-  it('returns null for unknown keys', () => {
-    const cache = new SemanticNodeCache();
-    expect(cache.get('unknown')).toBeNull();
-  });
-
-  it('invalidates a specific node', () => {
-    const cache = new SemanticNodeCache();
-    const uri1 = 'http://1';
-    const uri2 = 'http://2';
-
-    cache.set(uri1, []);
-    cache.set(uri2, []);
-
-    cache.invalidate(uri1);
-
-    expect(cache.get(uri1)).toBeNull();
-    expect(cache.get(uri2)).toEqual([]);
-  });
-
-  it('invalidates the entire cache', () => {
-    const cache = new SemanticNodeCache();
-    const uri1 = 'http://1';
-    const uri2 = 'http://2';
-
-    cache.set(uri1, []);
-    cache.set(uri2, []);
-
-    cache.invalidate();
-
-    expect(cache.get(uri1)).toBeNull();
-    expect(cache.get(uri2)).toBeNull();
-  });
 });

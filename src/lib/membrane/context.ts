@@ -29,16 +29,34 @@ export class MembraneContext {
     const verdict = await Interceptors.evaluate(interceptCtx);
 
     if (verdict === 'deny') {
-      const receipt = await Receipts.emitRefusal(commandId, capabilityId, prevHash, 'Admissibility denied by membrane interceptor');
+      const receipt = await Receipts.emitRefusal(
+        commandId,
+        capabilityId,
+        prevHash,
+        'Admissibility denied by membrane interceptor'
+      );
       return { success: false, result: null, receipt, error: 'Denied by membrane' };
     }
 
     // 2. Run Trajectory checks
     if (input.flowName && input.fromState && input.toState) {
-      const flowValid = Trajectories.validateTransition(input.flowName, input.fromState, input.toState);
+      const flowValid = Trajectories.validateTransition(
+        input.flowName,
+        input.fromState,
+        input.toState
+      );
       if (!flowValid) {
-        const receipt = await Receipts.emitRefusal(commandId, capabilityId, prevHash, `Illegal state transition in ${input.flowName}`);
-        await Quarantine.isolate(commandId, input, `Illegal transition: ${input.fromState} -> ${input.toState}`);
+        const receipt = await Receipts.emitRefusal(
+          commandId,
+          capabilityId,
+          prevHash,
+          `Illegal state transition in ${input.flowName}`
+        );
+        await Quarantine.isolate(
+          commandId,
+          input,
+          `Illegal transition: ${input.fromState} -> ${input.toState}`
+        );
         return { success: false, result: null, receipt, error: 'Illegal trajectory transition' };
       }
     }
@@ -60,7 +78,7 @@ export class MembraneContext {
         success: true,
         deltaHash: receiptHash,
         previousHash: prevHash,
-        resultHash
+        resultHash,
       };
 
       Receipts.append(receipt);

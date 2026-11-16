@@ -39,6 +39,10 @@ describe('Truex Expo Runtime Boundary Constraints', () => {
         const content = fs.readFileSync(fullPath, 'utf8');
         for (const token of forbiddenTokens) {
           if (content.includes(token)) {
+            // Exclude type-only imports of @wasm4pm/types
+            if (token === '@wasm4pm/' && content.includes('@wasm4pm/types') && !content.replace(/@wasm4pm\/types/g, '').includes('@wasm4pm/')) {
+              continue;
+            }
             failures.push(`Violation in ${fullPath}: contains "${token}"`);
           }
         }

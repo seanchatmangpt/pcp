@@ -51,7 +51,8 @@ export const BlurOverlay: React.FC<BlurOverlayProps> = ({
             backgroundColor: glassStyles.backgroundColor,
           },
         ]}
-        className={cn('backdrop-blur-xl items-center justify-center', className)}>
+        className={cn('backdrop-blur-xl items-center justify-center', className)}
+      >
         {children}
       </View>
     </TouchableWithoutFeedback>

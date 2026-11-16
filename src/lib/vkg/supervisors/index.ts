@@ -13,7 +13,13 @@ export interface PropagationMetrics {
   oscillationScore: number;
 }
 
-export type SupervisorControl = 'throttle' | 'suppress' | 'quarantine' | 'fork' | 'batch' | 'reroute';
+export type SupervisorControl =
+  | 'throttle'
+  | 'suppress'
+  | 'quarantine'
+  | 'fork'
+  | 'batch'
+  | 'reroute';
 
 export interface SupervisorHook {
   id: string;
@@ -26,7 +32,7 @@ export interface SupervisorHook {
  */
 export class PropagationPressureMonitor {
   calculatePressure(metrics: PropagationMetrics): number {
-    return (metrics.activationRate * 1.5) + (metrics.fanout * 2.0) + (metrics.cascadeDepth * 0.5);
+    return metrics.activationRate * 1.5 + metrics.fanout * 2.0 + metrics.cascadeDepth * 0.5;
   }
 
   checkLimit(pressure: number, limit: number): boolean {
@@ -56,7 +62,7 @@ export class FloodSupervisor implements SupervisorHook {
 export class OscillationDetector implements SupervisorHook {
   id = 'oscillation-detector';
   name = 'Cycle Pattern Detector';
-  
+
   evaluateMetrics(metrics: PropagationMetrics): SupervisorControl | 'normal' {
     if (metrics.oscillationScore > 0.8) {
       return 'quarantine'; // dampens the cycle

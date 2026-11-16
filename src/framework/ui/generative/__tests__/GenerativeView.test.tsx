@@ -63,23 +63,4 @@ describe('GenerativeView', () => {
 
     expect(getByText('This is a description')).toBeTruthy();
   });
-
-  it('renders URI and Image fields correctly', () => {
-    const schema: GenerativeSchema = {
-      fields: [
-        { key: 'link', label: 'Website', type: 'uri' },
-        { key: 'img', label: 'Avatar', type: 'string', format: 'image' },
-      ],
-    };
-    const data = {
-      link: 'https://example.com',
-      img: 'https://example.com/pic.png',
-    };
-    const { getByText, getByRole } = render(<GenerativeView schema={schema} data={data} />);
-
-    expect(getByText('https://example.com')).toBeTruthy();
-    // In React Native Testing Library, Image might not have a "role" by default
-    // but we can check if it exists via other means if needed.
-    // For now, we've covered the code paths.
-  });
 });

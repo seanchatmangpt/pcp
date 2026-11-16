@@ -75,7 +75,8 @@ export class SybilMeshAdapter implements MeshNetworkAdapter {
         senderId: spoofedPeerId,
         payload: { id: targetCrdtId, state: maliciousState },
         timestamp: maliciouslyOldTimestamp,
-      };
+        proof: `authv2:${spoofedPeerId}:${maliciouslyOldTimestamp}`,
+      } as any;
 
       this.messageListeners.forEach((cb) => cb(message));
     }
@@ -90,7 +91,8 @@ export class SybilMeshAdapter implements MeshNetworkAdapter {
       senderId: 'hacker_node',
       payload: { id: targetCrdtId, state: null as any }, // Corrupted state object
       timestamp: Date.now(),
-    };
+      proof: `authv2:hacker_node:${Date.now()}`,
+    } as any;
     this.messageListeners.forEach((cb) => cb(message));
   }
 }

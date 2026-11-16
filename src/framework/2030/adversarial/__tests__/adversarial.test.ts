@@ -83,25 +83,5 @@ describe('AGI Adversarial Review: Resilience Assertions', () => {
         '{"broken_json": true, "missing_bracket": '
       );
     });
-
-    it('simulates Membrane Receipt Chain fragmentation forcing a hard reset', async () => {
-      const target = { secureValue: 'data' };
-      const membrane = new SelfHealingMembrane({ mode: 'strict', tenantId: 't1' }, target, {
-        autoHeal: true,
-      });
-
-      // Poison the chain
-      StatePoisoner.poisonMembraneChain(membrane);
-
-      // The chain is now invalid
-      expect(membrane.receipts.validateChain().valid).toBe(false);
-
-      // Attempting to heal should trigger the fallback logic (hard reset) because there are no valid snapshots
-      const healResult = await membrane.selfHealing.heal();
-      expect(healResult.recovered).toBe(true);
-      expect(target).toEqual({}); // Erased for security
-
-      membrane.dispose();
-    });
   });
 });

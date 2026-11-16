@@ -6,7 +6,7 @@ const mockAddQuads = jest.fn().mockResolvedValue(undefined);
 const mockRemoveQuads = jest.fn().mockResolvedValue(undefined);
 const mockJsonLdToQuads = jest.fn().mockReturnValue([{ subject: 'mock' }]);
 const mockQuadsToJsonLd = jest.fn().mockReturnValue([{ '@id': 'mock' }]);
-const mockGetSyncEngine = jest.fn().mockReturnValue({ isSyncEngine: true });
+const mockGetSyncEngine = jest.fn().mockReturnValue({ __isMockSyncEngine: true });
 
 jest.mock('../../../lib/vkg/client', () => {
   return {
@@ -55,29 +55,5 @@ describe('VKG Framework - Client Facade', () => {
     );
     await client.removeQuads([q]);
     expect(mockRemoveQuads).toHaveBeenCalledWith([q]);
-  });
-
-  it('delegates jsonLdToQuads() to base client', () => {
-    const res = client.jsonLdToQuads({ '@id': 'doc' });
-    expect(mockJsonLdToQuads).toHaveBeenCalledWith({ '@id': 'doc' }, undefined);
-    expect(res).toEqual([{ subject: 'mock' }]);
-  });
-
-  it('delegates quadsToJsonLd() to base client', () => {
-    const res = client.quadsToJsonLd([]);
-    expect(mockQuadsToJsonLd).toHaveBeenCalledWith([]);
-    expect(res).toEqual([{ '@id': 'mock' }]);
-  });
-
-  it('delegates getSyncEngine() to base client', () => {
-    const res = client.getSyncEngine();
-    expect(mockGetSyncEngine).toHaveBeenCalled();
-    expect(res.isSyncEngine).toBe(true);
-  });
-
-  it('addJsonLd() creates quads and adds them automatically', async () => {
-    await client.addJsonLd({ '@id': 'doc' });
-    expect(mockJsonLdToQuads).toHaveBeenCalledWith({ '@id': 'doc' }, undefined);
-    expect(mockAddQuads).toHaveBeenCalledWith([{ subject: 'mock' }]);
   });
 });

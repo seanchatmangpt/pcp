@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "workspaces": [
+    "packages/*",
     "apps/*",
-    "packages/*"
+    "playground"
   ],
   "scripts": {
     "start": "expo start",
@@ -12,6 +13,7 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "test": "jest",
+    "test:e2e": "./run_e2e_verification.sh",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
     "lint": "eslint ."
@@ -69,6 +71,7 @@
     "eslint-config-expo": "^56.0.4",
     "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-import": "^2.32.0",
+    "fast-check": "^4.8.0",
     "husky": "^9.1.7",
     "hypergen": "^8.0.0-beta.1",
     "jest": "^29.7.0",

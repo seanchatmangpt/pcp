@@ -77,21 +77,81 @@ describe('useSemanticForm', () => {
     expect(result.current.errors['https://schema.org/name']).toBe('');
   });
 
-  it('should handle submission', async () => {
-    const onSubmit = jest.fn();
+  const mockSchemaWithNumbers = {
+    targetType: 'https://schema.org/Person',
+    fields: [
+      {
+        predicate: 'https://schema.org/age',
+        label: 'Age',
+        required: false,
+        range: 'http://www.w3.org/2001/XMLSchema#integer',
+      },
+      {
+        predicate: 'https://schema.org/height',
+        label: 'Height',
+        required: false,
+        range: 'http://www.w3.org/2001/XMLSchema#double',
+      },
+    ],
+  };
+
+  it('should validate and parse integer and double fields', async () => {
+    (fetchSemanticSchema as jest.Mock).mockResolvedValue(mockSchemaWithNumbers);
     const { result } = renderHook(() =>
       useSemanticForm(mockClient as any, 'https://schema.org/Person')
     );
 
     await act(async () => {
-      result.current.setFieldValue('https://schema.org/name', 'John Doe');
+      // Wait for schema to load
     });
 
+    // Test partial inputs for integer
     await act(async () => {
-      await result.current.handleSubmit(onSubmit);
+      result.current.setFieldValue('https://schema.org/age', '-');
     });
+    let isValid = false;
+    await act(async () => {
+      isValid = result.current.validate();
+    });
+    expect(isValid).toBe(false);
+    expect(result.current.errors['https://schema.org/age']).toBe('Age must be an integer');
 
-    expect(onSubmit).toHaveBeenCalledWith({ 'https://schema.org/name': 'John Doe' });
-    expect(result.current.isSubmitting).toBe(false);
+    // Test valid integer
+    await act(async () => {
+      result.current.setFieldValue('https://schema.org/age', '25');
+    });
+    await act(async () => {
+      isValid = result.current.validate();
+    });
+    expect(isValid).toBe(true);
+
+    // Test partial inputs for double
+    await act(async () => {
+      result.current.setFieldValue('https://schema.org/height', '-.');
+    });
+    await act(async () => {
+      isValid = result.current.validate();
+    });
+    expect(isValid).toBe(false);
+    expect(result.current.errors['https://schema.org/height']).toBe('Height must be a number');
+
+    // Test valid double
+    await act(async () => {
+      result.current.setFieldValue('https://schema.org/height', '1.75');
+    });
+    await act(async () => {
+      isValid = result.current.validate();
+    });
+    expect(isValid).toBe(true);
+
+    // Test handleSubmit parsing string inputs to JavaScript numbers
+    const onSubmitSpy = jest.fn();
+    await act(async () => {
+      await result.current.handleSubmit(onSubmitSpy);
+    });
+    expect(onSubmitSpy).toHaveBeenCalledWith({
+      'https://schema.org/age': 25,
+      'https://schema.org/height': 1.75,
+    });
   });
 });

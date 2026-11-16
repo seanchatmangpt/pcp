@@ -2,7 +2,10 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "CommonJS",
-    "lib": ["ESNext", "DOM"],
+    "lib": [
+      "ESNext",
+      "DOM"
+    ],
     "jsx": "react-native",
     "strict": true,
     "esModuleInterop": true,
@@ -11,11 +14,33 @@
     "moduleResolution": "node",
     "baseUrl": ".",
     "paths": {
-      "~/*": ["src/*"],
-      "@/*": ["*"]
+      "~/*": [
+        "src/*"
+      ],
+      "@/*": [
+        "*"
+      ],
+      "@pcp/*": [
+        "src/framework/*"
+      ],
+      "@pcp/framework/*": [
+        "src/framework/*"
+      ],
+      "@wasm4pm/types": [
+        "src/types/bindings.d.ts"
+      ]
     },
-    "types": ["jest", "node"],
+    "types": [
+      "jest",
+      "node"
+    ],
     "ignoreDeprecations": "6.0"
   },
-  "include": ["src/**/*", "lib/**/*"]
+  "include": [
+    "src/framework/**/*",
+    "src/lib/**/*",
+    "src/types/**/*",
+    "src/utils/**/*",
+    "lib/**/*"
+  ]
 }

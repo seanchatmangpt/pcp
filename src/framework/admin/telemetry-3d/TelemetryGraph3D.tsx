@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
 import Animated, { useAnimatedStyle, withSpring, withTiming } from 'react-native-reanimated';
 import { useTelemetryState } from './hooks';
 import { MembraneTopology } from './types';
@@ -10,9 +10,6 @@ export interface TelemetryGraph3DProps {
   testID?: string;
 }
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-const CANVAS_SIZE = Math.min(SCREEN_WIDTH, SCREEN_HEIGHT) * 0.8;
-
 /**
  * Experimental 3D-like visualization for Membrane topology.
  * Mocks the 3D renderer using Reanimated and React Native primitives.
@@ -22,6 +19,9 @@ export const TelemetryGraph3D: React.FC<TelemetryGraph3DProps> = ({
   onNodeClick,
   testID = 'telemetry-graph-3d',
 }) => {
+  const { width, height } = useWindowDimensions();
+  const canvasSize = Math.min(Math.min(width, height) * 0.8, 600);
+
   const { nodeProps, edgeProps, selectedNodeId, setSelectedNodeId, setHoveredNodeId } =
     useTelemetryState(topology);
 
@@ -33,11 +33,11 @@ export const TelemetryGraph3D: React.FC<TelemetryGraph3DProps> = ({
   return (
     <View style={styles.container} testID={testID}>
       {/* 3D Scene Mock */}
-      <View style={styles.scene}>
+      <View style={[styles.scene, { width: canvasSize, height: canvasSize }]}>
         {/* Edges */}
         {edgeProps.map((edge) => {
-          const dx = (edge.end[0] - edge.start[0]) * (CANVAS_SIZE / 10);
-          const dy = (edge.end[1] - edge.start[1]) * (CANVAS_SIZE / 10);
+          const dx = (edge.end[0] - edge.start[0]) * (canvasSize / 10);
+          const dy = (edge.end[1] - edge.start[1]) * (canvasSize / 10);
           const length = Math.sqrt(dx * dx + dy * dy);
           const angle = Math.atan2(dy, dx);
 
@@ -50,8 +50,8 @@ export const TelemetryGraph3D: React.FC<TelemetryGraph3DProps> = ({
                   width: length,
                   height: edge.thickness * 10,
                   opacity: edge.opacity,
-                  left: edge.start[0] * (CANVAS_SIZE / 10) + CANVAS_SIZE / 2,
-                  top: edge.start[1] * (CANVAS_SIZE / 10) + CANVAS_SIZE / 2,
+                  left: edge.start[0] * (canvasSize / 10) + canvasSize / 2,
+                  top: edge.start[1] * (canvasSize / 10) + canvasSize / 2,
                   transform: [{ rotate: `${angle}rad` }],
                 },
               ]}
@@ -78,6 +78,7 @@ export const TelemetryGraph3D: React.FC<TelemetryGraph3DProps> = ({
               onPress={() => handleNodeClick(node.id)}
               onHoverIn={() => setHoveredNodeId(node.id)}
               onHoverOut={() => setHoveredNodeId(null)}
+              canvasSize={canvasSize}
             />
           );
         })}
@@ -121,6 +122,7 @@ interface Node3DComponentProps {
   onPress: () => void;
   onHoverIn: () => void;
   onHoverOut: () => void;
+  canvasSize: number;
 }
 
 const Node3D: React.FC<Node3DComponentProps> = ({
@@ -130,11 +132,12 @@ const Node3D: React.FC<Node3DComponentProps> = ({
   scale,
   isSelected,
   onPress,
+  canvasSize,
 }) => {
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
-      { translateX: withSpring(position[0] * (CANVAS_SIZE / 10)) },
-      { translateY: withSpring(position[1] * (CANVAS_SIZE / 10)) },
+      { translateX: withSpring(position[0] * (canvasSize / 10)) },
+      { translateY: withSpring(position[1] * (canvasSize / 10)) },
       { scale: withSpring(scale) },
     ],
     backgroundColor: color,
@@ -144,8 +147,22 @@ const Node3D: React.FC<Node3DComponentProps> = ({
   }));
 
   return (
-    <Animated.View style={[styles.nodeContainer, animatedStyle]}>
-      <TouchableOpacity style={styles.nodeTouch} onPress={onPress} activeOpacity={0.7}>
+    <Animated.View
+      style={[
+        styles.nodeContainer,
+        {
+          left: canvasSize / 2 - 20,
+          top: canvasSize / 2 - 20,
+        },
+        animatedStyle,
+      ]}
+    >
+      <TouchableOpacity
+        accessibilityRole="button"
+        style={styles.nodeTouch}
+        onPress={onPress}
+        activeOpacity={0.7}
+      >
         <Text style={styles.nodeLabel} numberOfLines={1}>
           {label}
         </Text>
@@ -166,8 +183,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   scene: {
-    width: CANVAS_SIZE,
-    height: CANVAS_SIZE,
     position: 'relative',
   },
   nodeContainer: {
@@ -175,8 +190,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    left: CANVAS_SIZE / 2 - 20,
-    top: CANVAS_SIZE / 2 - 20,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#3B82F6',

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSharedValue, useFrameCallback } from 'react-native-reanimated';
+import { AutonomicSimulator } from '../../../lib/v2030/simulation/AutonomicSimulator';
 
 /**
  * Real-time application performance vitals.
@@ -100,6 +101,16 @@ export function useAppVitals(options: UseAppVitalsOptions = {}): AppVitals {
         }
       } catch (e) {
         // Silently fail to ensure zero-impact on app stability
+      }
+
+      const simulatedFps = AutonomicSimulator.getSimulatedFps();
+      if (simulatedFps !== null) {
+        setVitals({
+          jsFps: simulatedFps,
+          uiFps: simulatedFps,
+          memory: Number(memoryUsage.toFixed(2)),
+        });
+        return;
       }
 
       setVitals({

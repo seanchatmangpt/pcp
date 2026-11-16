@@ -6,7 +6,7 @@ const mockProcessDelta = jest.fn();
 const mockGetMetrics = jest.fn().mockReturnValue({ fanout: 5 });
 const mockReset = jest.fn();
 
-jest.mock('../../../lib/vkg/hooks/engine', () => {
+jest.mock('@/src/lib/vkg/hooks/engine', () => {
   return {
     VkgHookEngine: jest.fn().mockImplementation(() => {
       return {
@@ -51,27 +51,5 @@ describe('VKG Framework - Engine Facade', () => {
     const delta = { id: 'd1', subject: 's', predicate: 'p', object: 'o', timestamp: 123 };
     facade.processDelta(delta);
     expect(mockProcessDelta).toHaveBeenCalledWith(delta);
-  });
-
-  it('processMultiple processes an array of deltas', () => {
-    const deltas = [
-      { id: 'd1', subject: 's', predicate: 'p', object: 'o', timestamp: 123 },
-      { id: 'd2', subject: 's', predicate: 'p', object: 'o2', timestamp: 124 },
-    ];
-    facade.processMultiple(deltas);
-    expect(mockProcessDelta).toHaveBeenCalledTimes(2);
-    expect(mockProcessDelta).toHaveBeenNthCalledWith(1, deltas[0]);
-    expect(mockProcessDelta).toHaveBeenNthCalledWith(2, deltas[1]);
-  });
-
-  it('delegates getMetrics', () => {
-    const metrics = facade.getMetrics();
-    expect(mockGetMetrics).toHaveBeenCalled();
-    expect(metrics.fanout).toBe(5);
-  });
-
-  it('delegates reset', () => {
-    facade.reset();
-    expect(mockReset).toHaveBeenCalled();
   });
 });

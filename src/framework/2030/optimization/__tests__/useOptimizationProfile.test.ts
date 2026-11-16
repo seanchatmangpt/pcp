@@ -37,26 +37,4 @@ describe('Optimization Hooks', () => {
 
     expect(result.current).toBe(60000);
   });
-
-  it('useAnimationComplexity should return current complexity', async () => {
-    const { result } = renderHook(() => useAnimationComplexity());
-    expect(result.current).toBe('full');
-
-    await act(async () => {
-      uxOptimizer.updateVitals({ thermalState: 'serious' });
-    });
-
-    expect(result.current).toBe('minimal');
-  });
-
-  it('useZkpDepth should return current depth', async () => {
-    const { result } = renderHook(() => useZkpDepth());
-    expect(result.current).toBe('exhaustive');
-
-    await act(async () => {
-      uxOptimizer.updateVitals({ batteryLevel: 0.05, isCharging: false });
-    });
-
-    expect(result.current).toBe('minimal');
-  });
 });

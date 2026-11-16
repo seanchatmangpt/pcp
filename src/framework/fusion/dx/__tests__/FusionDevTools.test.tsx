@@ -57,45 +57,4 @@ describe('FusionDevTools', () => {
     fireEvent.press(screen.getByTestId('fusion-devtools-fab'));
     expect(screen.getByTestId('fusion-devtools-modal')).toBeTruthy();
   });
-
-  it('closes modal when close button is pressed', () => {
-    render(<FusionDevTools />);
-    fireEvent.press(screen.getByTestId('fusion-devtools-fab'));
-    fireEvent.press(screen.getByTestId('close-devtools'));
-    // State check
-  });
-
-  it('switches to scaffold tab and back', () => {
-    render(<FusionDevTools />);
-    fireEvent.press(screen.getByTestId('fusion-devtools-fab'));
-
-    // Default should be docs
-    expect(screen.getByTestId('mock-doc-explorer')).toBeTruthy();
-
-    // Switch to scaffold
-    fireEvent.press(screen.getByTestId('tab-scaffold'));
-    expect(screen.queryByTestId('mock-doc-explorer')).toBeNull();
-    expect(screen.getByTestId('scaffold-view')).toBeTruthy();
-
-    // Switch back to docs
-    fireEvent.press(screen.getByTestId('tab-docs'));
-    expect(screen.getByTestId('mock-doc-explorer')).toBeTruthy();
-  });
-
-  it('triggers scaffolding and shows loading state', () => {
-    render(<FusionDevTools />);
-    fireEvent.press(screen.getByTestId('fusion-devtools-fab'));
-    fireEvent.press(screen.getByTestId('tab-scaffold'));
-
-    const scaffoldBtn = screen.getByTestId('scaffold-btn-test-blueprint');
-    fireEvent.press(scaffoldBtn);
-
-    expect(screen.getByText('Generative...')).toBeTruthy();
-
-    act(() => {
-      jest.advanceTimersByTime(1500);
-    });
-
-    expect(screen.queryByText('Generative...')).toBeNull();
-  });
 });

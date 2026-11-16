@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { View, StyleSheet, Alert, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { AlertManager } from '@/src/framework/ui/dialog/AlertManager';
 import { FusionDataManagerProps, FusionDataState, FusionQuery } from './types';
 import { useNeuroSymbolicQuery } from '../../data/neuro-symbolic/useNeuroSymbolicQuery';
 import { usePredictivePrefetch } from '../../data/predictive/usePredictivePrefetch';
@@ -101,7 +102,7 @@ export const FusionDataManager: React.FC<FusionDataManagerProps> = ({
       setSelectedEntityId(null);
       refetch();
     } catch (err) {
-      Alert.alert('Fusion Error', 'Failed to persist data to the neuro-symbolic layer.');
+      AlertManager.alert('Fusion Error', 'Failed to persist data to the neuro-symbolic layer.');
     }
   };
 
@@ -149,18 +150,27 @@ export const FusionDataManager: React.FC<FusionDataManagerProps> = ({
           <Text style={styles.detailsId}>{selectedEntityId}</Text>
 
           <View style={styles.buttonRow}>
-            <TouchableOpacity style={[styles.actionButton, styles.editButton]} onPress={handleEdit}>
+            <TouchableOpacity
+              accessibilityRole="button"
+              style={[styles.actionButton, styles.editButton]}
+              onPress={handleEdit}
+            >
               <Text style={styles.buttonText}>Edit</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={[styles.actionButton, styles.deleteButton]}
-              onPress={handleDelete}>
+              onPress={handleDelete}
+            >
               <Text style={styles.buttonText}>Delete</Text>
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity style={styles.backButton} onPress={handleCancel}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            style={styles.backButton}
+            onPress={handleCancel}
+          >
             <Text style={styles.backButtonText}>Back to Discovery</Text>
           </TouchableOpacity>
         </ScrollView>

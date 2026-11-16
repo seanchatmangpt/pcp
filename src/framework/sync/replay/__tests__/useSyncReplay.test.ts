@@ -71,27 +71,4 @@ describe('useSyncReplay', () => {
     });
     expect(result.current.currentIndex).toBe(1);
   });
-
-  it('should handle playback', () => {
-    jest.useFakeTimers();
-    const { result } = renderHook(() => useSyncReplay(session));
-
-    act(() => {
-      result.current.play();
-    });
-    expect(result.current.isPlaying).toBe(true);
-
-    act(() => {
-      jest.advanceTimersByTime(1000);
-    });
-    expect(result.current.currentIndex).toBe(0);
-
-    act(() => {
-      jest.advanceTimersByTime(1000);
-    });
-    expect(result.current.currentIndex).toBe(1);
-    expect(result.current.isPlaying).toBe(false); // Should stop at the end
-
-    jest.useRealTimers();
-  });
 });

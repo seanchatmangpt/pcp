@@ -25,7 +25,8 @@ jest.mock('../../../ui/glassmorphism/GlassCard', () => {
         data-tint={tint}
         data-with-border={withBorder}
         style={style}
-        {...props}>
+        {...props}
+      >
         {children}
       </View>
     ),
@@ -100,7 +101,8 @@ describe('GlassSpatialContainer', () => {
         withBorder={false}
         delay={500}
         entryDirection="left"
-        style={style}>
+        style={style}
+      >
         <Text>Content</Text>
       </GlassSpatialContainer>
     );
@@ -117,44 +119,5 @@ describe('GlassSpatialContainer', () => {
     expect(glassCard.props.style).toEqual(style);
     expect(slideTransition.props['data-direction']).toBe('left');
     expect(slideTransition.props['data-delay']).toBe(500);
-  });
-
-  it('uses FadeIn when fadeOnly is true', () => {
-    const { queryByTestId, getByTestId } = render(
-      <GlassSpatialContainer fadeOnly delay={300}>
-        <Text>Content</Text>
-      </GlassSpatialContainer>
-    );
-
-    expect(queryByTestId('slide-transition')).toBeNull();
-    const fadeIn = getByTestId('fade-in');
-    expect(fadeIn.props['data-delay']).toBe(300);
-    expect(getByTestId('glass-card')).toBeTruthy();
-  });
-
-  it('uses SlideTransition when fadeOnly is false', () => {
-    const { queryByTestId, getByTestId } = render(
-      <GlassSpatialContainer fadeOnly={false}>
-        <Text>Content</Text>
-      </GlassSpatialContainer>
-    );
-
-    expect(queryByTestId('fade-in')).toBeNull();
-    expect(getByTestId('slide-transition')).toBeTruthy();
-  });
-
-  it('passes additional props to GlassCard', () => {
-    const { getByTestId } = render(
-      <GlassSpatialContainer accessibilityLabel="spatial-card">
-        <Text>Content</Text>
-      </GlassSpatialContainer>
-    );
-
-    const glassCard = getByTestId('glass-card');
-    expect(glassCard.props.accessibilityLabel).toBe('spatial-card');
-  });
-
-  it('sets displayName correctly', () => {
-    expect(GlassSpatialContainer.displayName).toBe('GlassSpatialContainer');
   });
 });

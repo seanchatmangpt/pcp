@@ -43,4 +43,63 @@ describe('TelemetryGraph3D', () => {
     fireEvent.press(getByText('System 1'));
     expect(getByText('Selected: 2')).toBeTruthy();
   });
+
+  describe('responsive and viewport scaling', () => {
+    let useWindowDimensionsSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      useWindowDimensionsSpy = jest.spyOn(require('react-native'), 'useWindowDimensions');
+    });
+
+    afterEach(() => {
+      useWindowDimensionsSpy.mockRestore();
+    });
+
+    it('handles iPad landscape viewport dimensions correctly without error', () => {
+      useWindowDimensionsSpy.mockReturnValue({
+        width: 1024,
+        height: 768,
+        scale: 2,
+        fontScale: 1,
+      });
+
+      const { getByTestId, rerender } = render(<TelemetryGraph3D topology={mockTopology} />);
+      expect(getByTestId('telemetry-graph-3d')).toBeTruthy();
+
+      // Trigger resize to iPad portrait
+      useWindowDimensionsSpy.mockReturnValue({
+        width: 768,
+        height: 1024,
+        scale: 2,
+        fontScale: 1,
+      });
+      rerender(<TelemetryGraph3D topology={mockTopology} />);
+      expect(getByTestId('telemetry-graph-3d')).toBeTruthy();
+    });
+
+    it('handles Web desktop viewport dimensions correctly without error', () => {
+      useWindowDimensionsSpy.mockReturnValue({
+        width: 1920,
+        height: 1080,
+        scale: 1,
+        fontScale: 1,
+      });
+
+      const { getByTestId } = render(<TelemetryGraph3D topology={mockTopology} />);
+      expect(getByTestId('telemetry-graph-3d')).toBeTruthy();
+    });
+
+    it('gracefully handles extremely small viewport scaling dimensions without crash', () => {
+      useWindowDimensionsSpy.mockReturnValue({
+        width: 0,
+        height: 0,
+        scale: 1,
+        fontScale: 1,
+      });
+
+      const { getByTestId } = render(<TelemetryGraph3D topology={mockTopology} />);
+      expect(getByTestId('telemetry-graph-3d')).toBeTruthy();
+    });
+  });
 });
+

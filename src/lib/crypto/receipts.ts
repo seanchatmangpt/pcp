@@ -31,21 +31,21 @@ function stringToUtf8ByteArray(str: string): number[] {
  * Pure JavaScript implementation of SHA-256 standard hash function.
  * Avoids any platform-specific dependencies and works in React Native/Expo as well as Node.js.
  */
-export function sha256Bytes(bytes: number[]): string {
+export function sha256(message: string): string {
+  const bytes = stringToUtf8ByteArray(message);
   const bitLength = bytes.length * 8;
-  const tempBytes = [...bytes];
 
   // Pad the bytes block
-  tempBytes.push(0x80);
-  while (tempBytes.length % 64 !== 56) {
-    tempBytes.push(0);
+  bytes.push(0x80);
+  while (bytes.length % 64 !== 56) {
+    bytes.push(0);
   }
 
   // Append the 64-bit length (big-endian)
   const highBits = Math.floor(bitLength / 0x100000000);
   const lowBits = bitLength & 0xffffffff;
 
-  tempBytes.push(
+  bytes.push(
     (highBits >> 24) & 0xff,
     (highBits >> 16) & 0xff,
     (highBits >> 8) & 0xff,
@@ -75,14 +75,14 @@ export function sha256Bytes(bytes: number[]): string {
     return (value >>> amount) | (value << (32 - amount));
   }
 
-  for (let i = 0; i < tempBytes.length; i += 64) {
+  for (let i = 0; i < bytes.length; i += 64) {
     const w = new Array(64);
     for (let t = 0; t < 16; t++) {
       w[t] =
-        (tempBytes[i + t * 4] << 24) |
-        (tempBytes[i + t * 4 + 1] << 16) |
-        (tempBytes[i + t * 4 + 2] << 8) |
-        tempBytes[i + t * 4 + 3];
+        (bytes[i + t * 4] << 24) |
+        (bytes[i + t * 4 + 1] << 16) |
+        (bytes[i + t * 4 + 2] << 8) |
+        bytes[i + t * 4 + 3];
     }
 
     for (let t = 16; t < 64; t++) {
@@ -134,44 +134,6 @@ export function sha256Bytes(bytes: number[]): string {
   }).join('');
 }
 
-export function sha256(message: string): string {
-  const bytes = stringToUtf8ByteArray(message);
-  return sha256Bytes(bytes);
-}
-
-export function hmacSha256(key: string, message: string): string {
-  let keyBytes = stringToUtf8ByteArray(key);
-  const msgBytes = stringToUtf8ByteArray(message);
-
-  const blockSize = 64;
-  if (keyBytes.length > blockSize) {
-    const keyHash = sha256(key);
-    keyBytes = [];
-    for (let i = 0; i < keyHash.length; i += 2) {
-      keyBytes.push(parseInt(keyHash.substr(i, 2), 16));
-    }
-  }
-
-  while (keyBytes.length < blockSize) {
-    keyBytes.push(0);
-  }
-
-  const ipad = new Array(blockSize);
-  const opad = new Array(blockSize);
-  for (let i = 0; i < blockSize; i++) {
-    ipad[i] = keyBytes[i] ^ 0x36;
-    opad[i] = keyBytes[i] ^ 0x5c;
-  }
-
-  const innerHashStr = sha256Bytes(ipad.concat(msgBytes));
-  const innerHashBytes: number[] = [];
-  for (let i = 0; i < innerHashStr.length; i += 2) {
-    innerHashBytes.push(parseInt(innerHashStr.substr(i, 2), 16));
-  }
-
-  return sha256Bytes(opad.concat(innerHashBytes));
-}
-
 /**
  * Deterministic JSON stringifier to ensure canonical format of any object.
  * This is crucial so that same properties key-ordering yields the same hash.
@@ -204,8 +166,7 @@ export function generateReceiptHash(previousHash: string | null | undefined, dat
 }
 
 const IV = [
-  0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
-  0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19
+  0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19,
 ];
 
 const MSG_PERMUTATION = [2, 6, 3, 10, 7, 0, 4, 13, 1, 11, 12, 5, 9, 14, 15, 8];
@@ -239,11 +200,22 @@ function compressBlake3(
   flags: number
 ): number[] {
   const v = [
-    chainingValue[0], chainingValue[1], chainingValue[2], chainingValue[3],
-    chainingValue[4], chainingValue[5], chainingValue[6], chainingValue[7],
-    IV[0], IV[1], IV[2], IV[3],
-    counterLow, counterHigh,
-    blockLen, flags
+    chainingValue[0],
+    chainingValue[1],
+    chainingValue[2],
+    chainingValue[3],
+    chainingValue[4],
+    chainingValue[5],
+    chainingValue[6],
+    chainingValue[7],
+    IV[0],
+    IV[1],
+    IV[2],
+    IV[3],
+    counterLow,
+    counterHigh,
+    blockLen,
+    flags,
   ];
 
   let m = [...blockWords];
@@ -276,7 +248,7 @@ function compressBlake3(
     v[4] ^ v[12],
     v[5] ^ v[13],
     v[6] ^ v[14],
-    v[7] ^ v[15]
+    v[7] ^ v[15],
   ];
 }
 
@@ -301,55 +273,57 @@ export function blake3(message: string): string {
   const bytes = stringToUtf8ByteArray(message);
   const chunkSize = 1024;
   const chunkOutputs: number[][] = [];
-  
+
   let chunkIndex = 0;
   let start = 0;
-  
+
   if (bytes.length === 0) {
     const words = new Array(16).fill(0);
     const hashWords = compressBlake3(IV, words, 0, 0, 0, CHUNK_START | CHUNK_END | ROOT);
-    return hashWords.map(w => {
-      const unsigned = w < 0 ? w + 0x100000000 : w;
-      const b0 = unsigned & 0xff;
-      const b1 = (unsigned >> 8) & 0xff;
-      const b2 = (unsigned >> 16) & 0xff;
-      const b3 = (unsigned >> 24) & 0xff;
-      return [b0, b1, b2, b3].map(b => b.toString(16).padStart(2, '0')).join('');
-    }).join('');
+    return hashWords
+      .map((w) => {
+        const unsigned = w < 0 ? w + 0x100000000 : w;
+        const b0 = unsigned & 0xff;
+        const b1 = (unsigned >> 8) & 0xff;
+        const b2 = (unsigned >> 16) & 0xff;
+        const b3 = (unsigned >> 24) & 0xff;
+        return [b0, b1, b2, b3].map((b) => b.toString(16).padStart(2, '0')).join('');
+      })
+      .join('');
   }
-  
+
   while (start < bytes.length) {
     const end = Math.min(start + chunkSize, bytes.length);
     const chunkBytes = bytes.slice(start, end);
-    
+
     let cv = [...IV];
     const numBlocks = Math.ceil(chunkBytes.length / 64);
-    
+
     for (let blockIdx = 0; blockIdx < numBlocks; blockIdx++) {
       const blockStart = blockIdx * 64;
       const blockEnd = Math.min(blockStart + 64, chunkBytes.length);
       const blockLen = blockEnd - blockStart;
       const words = bytesToWords(chunkBytes, blockStart, blockEnd);
-      
+
       let flags = 0;
       if (blockIdx === 0) flags |= CHUNK_START;
       if (blockIdx === numBlocks - 1) flags |= CHUNK_END;
-      
+
       if (end === bytes.length && blockIdx === numBlocks - 1) {
         flags |= ROOT;
       }
-      
+
       const counterLow = chunkIndex & 0xffffffff;
       const counterHigh = Math.floor(chunkIndex / 0x100000000);
-      
+
       cv = compressBlake3(cv, words, counterLow, counterHigh, blockLen, flags);
     }
-    
+
     chunkOutputs.push(cv);
     chunkIndex++;
     start = end;
   }
-  
+
   let currentLevel = chunkOutputs;
   while (currentLevel.length > 1) {
     const nextLevel: number[][] = [];
@@ -358,14 +332,14 @@ export function blake3(message: string): string {
         const left = currentLevel[i];
         const right = currentLevel[i + 1];
         const parentWords = [...left, ...right];
-        
+
         let flags = PARENT;
         if (i + 2 >= currentLevel.length && nextLevel.length === 0) {
           if (currentLevel.length === 2) {
             flags |= ROOT;
           }
         }
-        
+
         const cv = compressBlake3(IV, parentWords, 0, 0, 64, flags);
         nextLevel.push(cv);
       } else {
@@ -374,19 +348,24 @@ export function blake3(message: string): string {
     }
     currentLevel = nextLevel;
   }
-  
+
   const finalWords = currentLevel[0];
-  return finalWords.map(w => {
-    const unsigned = w < 0 ? w + 0x100000000 : w;
-    const b0 = unsigned & 0xff;
-    const b1 = (unsigned >> 8) & 0xff;
-    const b2 = (unsigned >> 16) & 0xff;
-    const b3 = (unsigned >> 24) & 0xff;
-    return [b0, b1, b2, b3].map(b => b.toString(16).padStart(2, '0')).join('');
-  }).join('');
+  return finalWords
+    .map((w) => {
+      const unsigned = w < 0 ? w + 0x100000000 : w;
+      const b0 = unsigned & 0xff;
+      const b1 = (unsigned >> 8) & 0xff;
+      const b2 = (unsigned >> 16) & 0xff;
+      const b3 = (unsigned >> 24) & 0xff;
+      return [b0, b1, b2, b3].map((b) => b.toString(16).padStart(2, '0')).join('');
+    })
+    .join('');
 }
 
-export function generateBlake3ReceiptHash(previousHash: string | null | undefined, data: any): string {
+export function generateBlake3ReceiptHash(
+  previousHash: string | null | undefined,
+  data: any
+): string {
   const prev = previousHash || '';
   const dataStr = canonicalStringify(data);
   return blake3(prev + dataStr);
@@ -396,9 +375,12 @@ export function generateBlake3ReceiptHash(previousHash: string | null | undefine
 // Zero-Knowledge Proof & Elliptic Curve Signature Validation Algorithms
 // =========================================================================
 
-export const BN254_P = 21888242871839275222246405745257275088696311157297823662689037894645226208583n;
-export const SECP256K1_P = 115792089237316195423570985008687907853269984665640564039457584007908834671663n;
-export const SECP256K1_N = 115792089237316195423570985008687907852837564279074904382605163141518161494337n;
+export const BN254_P =
+  21888242871839275222246405745257275088696311157297823662689037894645226208583n;
+export const SECP256K1_P =
+  115792089237316195423570985008687907853269984665640564039457584007908834671663n;
+export const SECP256K1_N =
+  115792089237316195423570985008687907852837564279074904382605163141518161494337n;
 export const SECP256K1_A = 0n;
 export const SECP256K1_B = 7n;
 
@@ -411,7 +393,7 @@ export interface Secp256k1Point {
 export const SECP256K1_G: Secp256k1Point = {
   x: 0x79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798n,
   y: 0x483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8n,
-  isInfinity: false
+  isInfinity: false,
 };
 
 /**
@@ -442,7 +424,8 @@ export function modPow(base: bigint, exp: bigint, modulus: bigint): bigint {
 
 export function modInverse(a: bigint, m: bigint): bigint {
   let m0 = m;
-  let y = 0n, x = 1n;
+  let y = 0n,
+    x = 1n;
   let aVal = a;
 
   if (m === 1n) return 0n;
@@ -469,7 +452,9 @@ export function parseToBigInt(val: any): bigint {
   if (typeof val === 'bigint') return val;
   if (typeof val === 'number') {
     if (!Number.isSafeInteger(val)) {
-      throw new Error(`Precision loss warning: cannot safely parse float/unsafe number ${val} as bigint.`);
+      throw new Error(
+        `Precision loss warning: cannot safely parse float/unsafe number ${val} as bigint.`
+      );
     }
     return BigInt(val);
   }
@@ -575,7 +560,10 @@ export function verifyEcdsaSignature(
 
     // Low-s rule to prevent malleability
     if (s > SECP256K1_N / 2n) {
-      return { valid: false, error: 'Signature s-value exceeds n/2 (high-s malleability prevention)' };
+      return {
+        valid: false,
+        error: 'Signature s-value exceeds n/2 (high-s malleability prevention)',
+      };
     }
 
     // 2. Public key bounds and curve membership check
@@ -622,8 +610,16 @@ export function isPointOnBn254G1(x: bigint, y: bigint): boolean {
 }
 
 export function isPointOnBn254G2(x0: bigint, x1: bigint, y0: bigint, y1: bigint): boolean {
-  if (x0 < 0n || x0 >= BN254_P || x1 < 0n || x1 >= BN254_P ||
-      y0 < 0n || y0 >= BN254_P || y1 < 0n || y1 >= BN254_P) {
+  if (
+    x0 < 0n ||
+    x0 >= BN254_P ||
+    x1 < 0n ||
+    x1 >= BN254_P ||
+    y0 < 0n ||
+    y0 >= BN254_P ||
+    y1 < 0n ||
+    y1 >= BN254_P
+  ) {
     return false;
   }
 
@@ -706,7 +702,8 @@ export function verifyZKProofReceipt(
     if (!hashMatched) {
       return {
         valid: false,
-        error: 'Receipt hash binding verification failed. Receipt hash is not bound to public inputs.',
+        error:
+          'Receipt hash binding verification failed. Receipt hash is not bound to public inputs.',
       };
     }
 

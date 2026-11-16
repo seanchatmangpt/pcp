@@ -1,19 +1,11 @@
-// @ts-nocheck
 import React, { createContext, useCallback, useEffect, useState } from 'react';
 import { useColorScheme as useDeviceColorScheme, View } from 'react-native';
 import { vars } from 'nativewind';
 import { ThemeSettings, ThemeContextType } from './types';
 import { defaultLightTheme, defaultDarkTheme } from './defaults';
-// In test environments react-native-mmkv is mocked and MMKV may not be a real class.
-// We fall back to an in-memory store that satisfies the same API surface.
-let storage: any;
-const _map = new Map<string, string>();
-storage = {
-  getString: (key: string) => _map.get(key),
-  set: (key: string, value: string) => _map.set(key, value),
-  delete: (key: string) => _map.delete(key),
-  addOnValueChangedListener: () => ({ remove: () => {} }),
-};
+import { createIsolatedMMKVStorage } from '@/src/lib/store/mmkvStorage';
+
+const { instance: storage } = createIsolatedMMKVStorage('pcp-theme');
 
 const THEME_STORAGE_KEY = 'pcp-theme-settings';
 
@@ -56,12 +48,15 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const resetTheme = useCallback(() => {
     const next = deviceColorScheme === 'dark' ? defaultDarkTheme : defaultLightTheme;
     setTheme(next);
-    storage.delete(THEME_STORAGE_KEY);
+    storage.remove(THEME_STORAGE_KEY);
   }, [deviceColorScheme]);
 
-  // Sync with device color scheme changes if no override is present?
-  // Actually, let's keep it simple: if user hasn't overridden, follow device.
-  // But if we have stored theme, we use it.
+  useEffect(() => {
+    const stored = storage.getString(THEME_STORAGE_KEY);
+    if (!stored) {
+      setTheme(deviceColorScheme === 'dark' ? defaultDarkTheme : defaultLightTheme);
+    }
+  }, [deviceColorScheme]);
 
   const themeVars = vars({
     '--color-primary': theme.colors.primary,

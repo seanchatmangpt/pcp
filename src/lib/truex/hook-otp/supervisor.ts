@@ -15,7 +15,11 @@ export class DefaultHookSupervisor implements HookSupervisor {
     this.quarantineOnErrorPattern = quarantineOnErrorPattern;
   }
 
-  public async onFailure(error: any, msg: HookMessage, attempts: number): Promise<SupervisorAction> {
+  public async onFailure(
+    error: any,
+    msg: HookMessage,
+    attempts: number
+  ): Promise<SupervisorAction> {
     const errorStr = (error?.message || String(error)).toLowerCase();
 
     // Check if error matches quarantine patterns

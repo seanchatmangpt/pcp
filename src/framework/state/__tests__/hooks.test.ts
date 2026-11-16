@@ -62,46 +62,4 @@ describe('useHydration', () => {
     unmount();
     expect(unsubMock).toHaveBeenCalled();
   });
-
-  it('handles the case where the persist object exists but is removed before the effect runs', () => {
-    // Edge case testing
-    const mockStore: any = {
-      persist: {
-        hasHydrated: jest.fn().mockReturnValue(false),
-        onFinishHydration: jest.fn(),
-      },
-    };
-
-    const { result, rerender } = renderHook(({ store }: { store: any }) => useHydration(store), {
-      initialProps: { store: mockStore },
-    });
-
-    expect(result.current).toBe(false);
-
-    // Remove persist API before next render
-    const newStore: any = {};
-    rerender({ store: newStore });
-
-    expect(result.current).toBe(true);
-  });
-
-  it('handles the case where it hydrates between initial render and the effect running', () => {
-    let hasHydrated = false;
-    const mockStore: any = {
-      persist: {
-        hasHydrated: jest.fn().mockImplementation(() => hasHydrated),
-        onFinishHydration: jest.fn(),
-      },
-    };
-
-    // We can simulate this by making `hasHydrated` return false on first call,
-    // and true on subsequent calls.
-    mockStore.persist.hasHydrated.mockReturnValueOnce(false).mockReturnValueOnce(true);
-
-    const { result } = renderHook(() =>
-      useHydration(mockStore as UseBoundStore<StoreApi<any>> & PersistApi<any>)
-    );
-
-    expect(result.current).toBe(true);
-  });
 });

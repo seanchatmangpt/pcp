@@ -1,0 +1,19 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "~/*": ["./*"],
+      "@/*": ["../*"],
+      "@pcp/*": ["../src/framework/*"],
+      "@pcp/framework": ["../src/framework"],
+      "@pcp/framework/*": ["../src/framework/*"],
+      "@wasm4pm/types": ["../src/types/bindings.d.ts"]
+    }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "../src/types/**/*.d.ts"
+  ]
+}

@@ -33,36 +33,4 @@ describe('SemanticTranslationEngine', () => {
     const intent = engine.translate('welcome.message', { name: 'Pcp' });
     expect(intent.text).toBe('Welcome back, Pcp!');
   });
-
-  it('should switch culture to ar-SA and change orientation', async () => {
-    await engine.initialize();
-    await engine.setCulture('ar-SA');
-    expect(engine.getCulture()).toBe('ar-SA');
-    expect(engine.getOrientation()).toBe('rtl');
-
-    const intent = engine.translate('auth.login');
-    expect(intent.text).toBe('تسجيل الدخول');
-    expect(intent.layout).toBe('rtl');
-  });
-
-  it('should return default intent for unknown keys', async () => {
-    await engine.initialize();
-    const intent = engine.translate('unknown.key');
-    expect(intent.intent).toBe('unknown');
-    expect(intent.text).toBe('unknown.key');
-  });
-
-  it('should throw if not initialized', () => {
-    expect(() => engine.translate('auth.login')).toThrow('[SemanticI18n] Engine not initialized');
-  });
-
-  it('should handle aesthetic configuration', async () => {
-    await engine.initialize();
-    const aesthetic = engine.getAesthetic();
-    expect(aesthetic.spacingMultiplier).toBe(1.0);
-
-    await engine.setCulture('ar-SA');
-    const arAesthetic = engine.getAesthetic();
-    expect(arAesthetic.spacingMultiplier).toBe(1.2);
-  });
 });

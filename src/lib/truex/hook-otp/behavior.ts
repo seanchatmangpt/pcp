@@ -1,4 +1,11 @@
-import { HookBehavior, HookMessage, HookExecutionContext, HookEffect, ReplayResult, HookState } from './types';
+import {
+  HookBehavior,
+  HookMessage,
+  HookExecutionContext,
+  HookEffect,
+  ReplayResult,
+  HookState,
+} from './types';
 
 export async function runInit(behavior: HookBehavior): Promise<HookState> {
   if (behavior.init) {
@@ -43,7 +50,7 @@ export async function runReplay(
       success: true,
       outputHash: 'hash_' + JSON.stringify(effects) + '_' + JSON.stringify(ctx.state),
       state: ctx.state,
-      effects
+      effects,
     };
   } catch (err: any) {
     return {
@@ -51,7 +58,7 @@ export async function runReplay(
       outputHash: 'error_hash',
       state: ctx.state,
       effects: [],
-      error: err.message || String(err)
+      error: err.message || String(err),
     };
   }
 }

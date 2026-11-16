@@ -19,12 +19,16 @@ export class Quarantine {
   /**
    * Isolates a failing payload with error details
    */
-  static async isolate(commandId: string, payload: any, errorMsg: string): Promise<QuarantineRecord> {
+  static async isolate(
+    commandId: string,
+    payload: any,
+    errorMsg: string
+  ): Promise<QuarantineRecord> {
     const record: QuarantineRecord = {
       commandId,
       payload,
       error: errorMsg,
-      quarantinedAt: new Date().toISOString()
+      quarantinedAt: new Date().toISOString(),
     };
     this.records.push(record);
     return record;

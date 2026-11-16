@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 
 // Mock the database client structure
 jest.mock('../../db/db', () => {
-  const mockReturningFn = jest.fn();
+  const mockReturningFn = jest.fn().mockResolvedValue([{}]);
   const mockValuesFn = jest.fn().mockReturnValue({ returning: mockReturningFn });
   const mockInsertFn = jest.fn().mockReturnValue({ values: mockValuesFn });
 
@@ -50,8 +50,8 @@ jest.mock('@/lib/supabase', () => {
   const mockDeleteEq = jest.fn();
   
   mockDeleteEq.mockImplementation(() => {
-    const p = Promise.resolve({ error: null });
-    (p as any).eq = mockDeleteEq;
+    const p = Promise.resolve({ error: null }) as any;
+    p.eq = mockDeleteEq;
     return p;
   });
 
@@ -81,7 +81,7 @@ jest.mock('../../sync/syncEngine', () => {
       public pushChanges = jest.fn();
     },
   };
-}, { virtual: true });
+});
 
 const mockedDb = db as any;
 const mockedSupabase = supabase as any;
@@ -92,7 +92,6 @@ describe('VirtualKnowledgeGraphClient (RDF.js Spec)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     client = new VirtualKnowledgeGraphClient();
-    jest.spyOn(client.getSyncEngine() as any, 'queueJob').mockImplementation(mockQueueJob);
   });
 
   describe('getSyncEngine', () => {

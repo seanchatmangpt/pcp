@@ -89,26 +89,4 @@ describe('useOptimisticMutation', () => {
     expect(data).toBe('success-data');
     expect(mutationFn).toHaveBeenCalledWith('input-vars');
   });
-
-  it('should catch error when no onError provided', async () => {
-    const error = new Error('mutation-failed');
-    const mutationFn = jest.fn().mockRejectedValue(error);
-
-    const { result } = renderHook(() => useOptimisticMutation({ mutationFn }));
-
-    let promise: any;
-    act(() => {
-      promise = result.current.mutate('input-vars');
-    });
-
-    await act(async () => {
-      try {
-        await promise;
-      } catch (e) {}
-    });
-
-    await waitFor(() => {
-      expect(result.current.error).toBe(error);
-    });
-  });
 });

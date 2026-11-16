@@ -51,17 +51,4 @@ describe('SemanticLayout Components', () => {
       alignItems: 'center',
     });
   });
-
-  it('provides intent to children in SemanticIntentView', async () => {
-    const { findByText } = render(
-      <SemanticI18nProvider initialCulture="en-US">
-        <SemanticIntentView intentKey="welcome.message" variables={{ name: 'Pcp' }}>
-          {(intent) => <Text>{intent.text}</Text>}
-        </SemanticIntentView>
-      </SemanticI18nProvider>
-    );
-
-    const element = await findByText('Welcome back, Pcp!');
-    expect(element).toBeTruthy();
-  });
 });

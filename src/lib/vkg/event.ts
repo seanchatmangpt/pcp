@@ -27,23 +27,53 @@ export function telemetryToSchemaOrgEvent(telemetry: TelemetryEvent): SchemaOrgE
   }
 
   const timestamp = telemetry.timestamp || new Date().toISOString();
-  
+
   // Apply terminology transformations on event names/types
   const typeLower = telemetry.type.toLowerCase();
   let mappedName = telemetry.type;
-  if (typeLower.includes('screen') || typeLower.includes('user interface') || typeLower.includes('projection') || typeLower.includes('uistate') || typeLower.includes('ui state')) {
+  if (
+    typeLower.includes('screen') ||
+    typeLower.includes('user interface') ||
+    typeLower.includes('projection') ||
+    typeLower.includes('uistate') ||
+    typeLower.includes('ui state')
+  ) {
     mappedName = 'Avatar-Relative Projection Event';
-  } else if (typeLower.includes('api call') || typeLower.includes('api_call') || typeLower.includes('propagation') || typeLower.includes('trigger')) {
+  } else if (
+    typeLower.includes('api call') ||
+    typeLower.includes('api_call') ||
+    typeLower.includes('propagation') ||
+    typeLower.includes('trigger')
+  ) {
     mappedName = 'Propagation Trigger Event';
-  } else if (typeLower.includes('offline queue') || typeLower.includes('offline cache') || typeLower.includes('tension') || typeLower.includes('queue') || typeLower.includes('cache')) {
+  } else if (
+    typeLower.includes('offline queue') ||
+    typeLower.includes('offline cache') ||
+    typeLower.includes('tension') ||
+    typeLower.includes('queue') ||
+    typeLower.includes('cache')
+  ) {
     mappedName = 'Pre-Admission Tension Queue Event';
   } else if (typeLower.includes('dashboard') || typeLower.includes('supervision')) {
     mappedName = 'Consequence Supervision Event';
-  } else if (typeLower.includes('form submit') || typeLower.includes('form_submit') || typeLower.includes('intake')) {
+  } else if (
+    typeLower.includes('form submit') ||
+    typeLower.includes('form_submit') ||
+    typeLower.includes('intake')
+  ) {
     mappedName = 'Operational Intake Event';
-  } else if (typeLower.includes('webhook') || typeLower.includes('api response') || typeLower.includes('api_response') || typeLower.includes('settlement')) {
+  } else if (
+    typeLower.includes('webhook') ||
+    typeLower.includes('api response') ||
+    typeLower.includes('api_response') ||
+    typeLower.includes('settlement')
+  ) {
     mappedName = 'Settlement Adjudication Event';
-  } else if (typeLower.includes('admin panel') || typeLower.includes('admin_panel') || typeLower.includes('supervision geometry')) {
+  } else if (
+    typeLower.includes('admin panel') ||
+    typeLower.includes('admin_panel') ||
+    typeLower.includes('supervision geometry')
+  ) {
     mappedName = 'Supervision Geometry Event';
   }
 
@@ -56,17 +86,32 @@ export function telemetryToSchemaOrgEvent(telemetry: TelemetryEvent): SchemaOrgE
     for (const [key, value] of Object.entries(telemetry.payload)) {
       let mappedKey = key;
       // Terminology rebrand mappings for telemetry fields
-      if (key === 'screen' || key === 'uiState' || key === 'userInterface' || key === 'projection') {
+      if (
+        key === 'screen' ||
+        key === 'uiState' ||
+        key === 'userInterface' ||
+        key === 'projection'
+      ) {
         mappedKey = 'avatarRelativeProjection';
       } else if (key === 'apiCall' || key === 'trigger' || key === 'propagationTrigger') {
         mappedKey = 'propagationTrigger';
-      } else if (key === 'offlineQueue' || key === 'queue' || key === 'offlineCache' || key === 'cache') {
+      } else if (
+        key === 'offlineQueue' ||
+        key === 'queue' ||
+        key === 'offlineCache' ||
+        key === 'cache'
+      ) {
         mappedKey = 'preAdmissionTensionQueue';
       } else if (key === 'dashboard' || key === 'supervisionView') {
         mappedKey = 'consequenceSupervision';
       } else if (key === 'formSubmit' || key === 'submit' || key === 'intake') {
         mappedKey = 'operationalIntake';
-      } else if (key === 'webhook' || key === 'apiResponse' || key === 'response' || key === 'settlement') {
+      } else if (
+        key === 'webhook' ||
+        key === 'apiResponse' ||
+        key === 'response' ||
+        key === 'settlement'
+      ) {
         mappedKey = 'settlementAdjudication';
       } else if (key === 'adminPanel' || key === 'admin' || key === 'supervisionGeometry') {
         mappedKey = 'supervisionGeometry';

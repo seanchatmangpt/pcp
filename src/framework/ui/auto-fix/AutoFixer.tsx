@@ -61,7 +61,8 @@ export const AutoFixer: React.FC<AutoFixerProps> = ({ error, onReset }) => {
                 : suggestion.impact === 'medium'
                   ? 'bg-amber-50 border-amber-100'
                   : 'bg-green-50 border-green-100'
-            }`}>
+            }`}
+          >
             <View className="flex-row justify-between items-center mb-1">
               <Text className="font-semibold text-slate-900">{suggestion.title}</Text>
               <View
@@ -71,7 +72,8 @@ export const AutoFixer: React.FC<AutoFixerProps> = ({ error, onReset }) => {
                     : suggestion.impact === 'medium'
                       ? 'bg-amber-200'
                       : 'bg-green-200'
-                }`}>
+                }`}
+              >
                 <Text className="text-[10px] font-bold uppercase text-slate-800">
                   {suggestion.impact} Impact
                 </Text>

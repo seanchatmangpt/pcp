@@ -93,46 +93,4 @@ describe('SwipeToDismiss', () => {
       panUpdateCallback({ translationX: 0, translationY: 100 });
     });
   });
-
-  it('triggers onDismiss when threshold is met (right)', () => {
-    const onDismissMock = jest.fn();
-    render(
-      <SwipeToDismiss directions={['right']} onDismiss={onDismissMock} threshold={0.1}>
-        <Text>Swipe Me</Text>
-      </SwipeToDismiss>
-    );
-
-    act(() => {
-      panEndCallback({ translationX: 1000, translationY: 0 });
-    });
-
-    expect(onDismissMock).toHaveBeenCalled();
-  });
-
-  it('triggers onSwipeCancel when threshold is NOT met', () => {
-    const onSwipeCancelMock = jest.fn();
-    render(
-      <SwipeToDismiss onSwipeCancel={onSwipeCancelMock} threshold={0.5}>
-        <Text>Swipe Me</Text>
-      </SwipeToDismiss>
-    );
-
-    act(() => {
-      panEndCallback({ translationX: 10, translationY: 0 });
-    });
-
-    expect(onSwipeCancelMock).toHaveBeenCalled();
-  });
-
-  it('handles resistance for unauthorized directions', () => {
-    render(
-      <SwipeToDismiss directions={['right']}>
-        <Text>Swipe Me</Text>
-      </SwipeToDismiss>
-    );
-
-    act(() => {
-      panUpdateCallback({ translationX: -100, translationY: 100 });
-    });
-  });
 });

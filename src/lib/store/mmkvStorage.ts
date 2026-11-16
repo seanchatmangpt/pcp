@@ -1,5 +1,5 @@
 import { StateStorage } from 'zustand/middleware';
-import { createMMKV, MMKV } from 'react-native-mmkv';
+import { createMMKV, type MMKV } from 'react-native-mmkv';
 
 export const mmkvInstance = createMMKV();
 
@@ -16,20 +16,15 @@ export const mmkvStorage: StateStorage = {
   },
 };
 
-/**
- * @returns A Zustand StateStorage adapter and its underlying MMKV instance.
- */
 export function createIsolatedMMKVStorage(storeId: string): {
   storage: StateStorage;
   instance: MMKV;
 } {
   if (!storeId || storeId.trim() === '') {
-    throw new Error('storeId must be a non-empty string for isolated MMKV storage');
+    throw new Error('storeId must be a non-empty string');
   }
 
-  const instance = createMMKV({
-    id: `membrane-client-zustand-storage-${storeId}`,
-  });
+  const instance = createMMKV({ id: `membrane-client-zustand-storage-${storeId}` });
 
   const storage: StateStorage = {
     setItem: (name: string, value: string): void => {

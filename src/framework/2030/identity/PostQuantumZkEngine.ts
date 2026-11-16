@@ -59,17 +59,13 @@ export class PostQuantumZkEngine extends ZkEngine implements PqZkProvider {
   private verifyPqSignature(signature: PqSignature, data: string): boolean {
     if (!signature.data || !signature.publicKey) return false;
 
-    // Detect if they are attempting to use the full Lamport keys/signatures
-    if (signature.data.length > 100 || signature.publicKey.length > 100) {
-      if (signature.data.length !== 16384 || signature.publicKey.length !== 32768) {
-        return false;
-      }
-      return this.verifyLamportSignature(signature.data, signature.publicKey, data);
+    // Enforce strict Lamport signature validation for all Post-Quantum signatures.
+    // Testing bypasses (length < 100) are removed to ensure cryptographic integrity.
+    if (signature.data.length !== 16384 || signature.publicKey.length !== 32768) {
+      return false;
     }
 
-    // Backward compatibility fallback for legacy/compatibility test mocks
-    if (signature.data === 'INVALID_SIG') return false;
-    return true;
+    return this.verifyLamportSignature(signature.data, signature.publicKey, data);
   }
 
   /**
@@ -119,25 +115,17 @@ export class PostQuantumZkEngine extends ZkEngine implements PqZkProvider {
       return false;
     if (!zkProofData) return false;
 
-    // Ensure the receipt is bound to the ZK proof by verifying the SHA-256 hash binding
+    // Ensure the receipt is bound to the ZK proof by verifying the SHA-256 hash binding.
+    // Testing bypasses with hardcoded hashes are removed.
     const hash = sha256(zkProofData);
-    const isValidBinding =
-      hash === receipt.zkProofHash ||
-      receipt.zkProofHash === 'hash-123' ||
-      receipt.zkProofHash === 'c1f64477c049ca1d3d1dfdde3731fd29af149d105a09fe9529ac44e58f8f9f37';
+    const isValidBinding = hash === receipt.zkProofHash;
 
     // Verify the PQ signature on the receipt (excluding the signature itself to avoid circular references)
     const { pqSignature, ...unsignedReceipt } = receipt;
 
-    // Fallback logic for mock tests where signature data is structural
-    let isSigValid = false;
-    if (pqSignature.data === 'INVALID_SIG') {
-      isSigValid = false;
-    } else if (pqSignature.data === 'valid-signature' || pqSignature.data === 'valid') {
-      isSigValid = true;
-    } else {
-      isSigValid = this.verifyPqSignature(pqSignature, canonicalStringify(unsignedReceipt));
-    }
+    // Enforce strict PQ signature verification on the receipt.
+    // Testing bypasses for 'valid', 'valid-signature', and 'INVALID_SIG' are removed.
+    const isSigValid = this.verifyPqSignature(pqSignature, canonicalStringify(unsignedReceipt));
 
     return isValidBinding && isSigValid;
   }

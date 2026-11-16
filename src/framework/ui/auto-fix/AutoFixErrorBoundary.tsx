@@ -1,5 +1,6 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { AutoFixer } from './AutoFixer';
 
 export interface AutoFixErrorBoundaryProps {
@@ -59,12 +60,14 @@ export class AutoFixErrorBoundary extends Component<
       if (this.state.autoFixerCrashed) {
         return (
           <SafeAreaView
-            style={{ flex: 1, backgroundColor: '#000', padding: 20, justifyContent: 'center' }}>
+            style={{ flex: 1, backgroundColor: '#000', padding: 20, justifyContent: 'center' }}
+          >
             <Text style={{ color: 'red', fontSize: 24, fontWeight: 'bold' }}>FATAL ERROR</Text>
             <Text style={{ color: 'white', marginTop: 10 }}>The recovery system has crashed.</Text>
             <TouchableOpacity
               onPress={this.resetError}
-              style={{ marginTop: 20, padding: 15, backgroundColor: '#333' }}>
+              style={{ marginTop: 20, padding: 15, backgroundColor: '#333' }}
+            >
               <Text style={{ color: 'white', textAlign: 'center' }}>FORCE RELOAD</Text>
             </TouchableOpacity>
           </SafeAreaView>
@@ -93,7 +96,8 @@ export class AutoFixErrorBoundary extends Component<
             <TouchableOpacity
               style={styles.retryButton}
               onPress={this.resetError}
-              testID="auto-fix-retry-button">
+              testID="auto-fix-retry-button"
+            >
               <Text style={styles.retryButtonText}>Standard Retry</Text>
             </TouchableOpacity>
           </View>

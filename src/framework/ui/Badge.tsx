@@ -72,7 +72,7 @@ export function Badge({
   const textClasses = cn('text-xs font-semibold', textVariantStyles[variant], textClassName);
 
   return (
-    <View className={containerClasses} {...props}>
+    <View className={containerClasses} accessibilityRole="text" {...props}>
       {typeof children === 'string' ? <Text className={textClasses}>{children}</Text> : children}
     </View>
   );

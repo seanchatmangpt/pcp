@@ -121,7 +121,8 @@ export const FusionSpatialScene: React.FC<FusionSpatialSceneProps> = ({
                   width: `${100 / columns}%`,
                   padding: gap / 2,
                 },
-              ]}>
+              ]}
+            >
               <GlassCard intensity={intensity} tint={tint} style={[styles.glassBase, itemStyle]}>
                 {child}
               </GlassCard>
@@ -181,12 +182,14 @@ export const FusionSpatialScene: React.FC<FusionSpatialSceneProps> = ({
               rotation,
               scale: { x: 1, y: 1, z: 1 },
             }}
-            depth={Math.round(-position.z * 100)}>
+            depth={Math.round(-position.z * 100)}
+          >
             <FadeIn delay={index * stagger} duration={800}>
               <GlassCard
                 intensity={intensity}
                 tint={tint}
-                style={[styles.glassBase, styles.glass3D, itemStyle]}>
+                style={[styles.glassBase, styles.glass3D, itemStyle]}
+              >
                 {child}
               </GlassCard>
             </FadeIn>

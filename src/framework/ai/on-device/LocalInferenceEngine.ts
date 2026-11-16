@@ -11,6 +11,7 @@
 
 import { blake3, canonicalStringify } from '@/src/lib/crypto/receipts';
 import { ILocalInferenceEngine, LocalInferenceResult, RunInferenceOptions } from './types';
+import { FastTFLiteAdapter } from './FastTFLiteAdapter';
 import {
   computeOptimalAlignment,
   AGENT_NATIVE_PETRI_NET,
@@ -358,6 +359,12 @@ export class LocalInferenceEngine implements ILocalInferenceEngine {
    * @throws InferenceExecutionError if the adapter fails with an unrecoverable error.
    */
   async inferTyped(request: InferenceRequest): Promise<InferenceResponse> {
+    if (request.modelId && request.modelId !== this.adapter.modelId) {
+      if (request.modelId.startsWith('tflite') || request.modelId.includes('tflite')) {
+        this.adapter = new FastTFLiteAdapter(request.modelId);
+      }
+    }
+
     const startMs = Date.now();
 
     let adapterResult: { text: string; usage: InferenceUsage };
@@ -407,6 +414,12 @@ export class LocalInferenceEngine implements ILocalInferenceEngine {
     request: InferenceRequest,
     onToken: (token: string) => void
   ): Promise<InferenceResponse> {
+    if (request.modelId && request.modelId !== this.adapter.modelId) {
+      if (request.modelId.startsWith('tflite') || request.modelId.includes('tflite')) {
+        this.adapter = new FastTFLiteAdapter(request.modelId);
+      }
+    }
+
     const startMs = Date.now();
 
     let adapterResult: { text: string; usage: InferenceUsage };
@@ -687,3 +700,9 @@ export function buildInferenceRequest(
  * Uses the DefaultRulesAdapter. Override via setAdapter() if needed.
  */
 export const defaultLocalInferenceEngine = new LocalInferenceEngine();
+
+/**
+ * Default TFLite-based local inference engine.
+ */
+export const defaultFastTFLiteEngine = new LocalInferenceEngine(new FastTFLiteAdapter());
+

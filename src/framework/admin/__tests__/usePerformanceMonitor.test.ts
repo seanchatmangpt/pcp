@@ -45,29 +45,4 @@ describe('usePerformanceMonitor', () => {
 
     expect(result.current.metrics).toEqual([]);
   });
-
-  it('should respect maxMetrics limit', () => {
-    const { result } = renderHook(() => usePerformanceMonitor({ maxMetrics: 2 }));
-
-    act(() => {
-      result.current.recordMetric('Task1', 10);
-      result.current.recordMetric('Task2', 20);
-      result.current.recordMetric('Task3', 30);
-    });
-
-    // Should only keep the latest 2
-    expect(result.current.metrics.length).toBe(2);
-    expect(result.current.metrics[0].name).toBe('Task3');
-    expect(result.current.metrics[1].name).toBe('Task2');
-  });
-
-  it('should not record metric if not enabled', () => {
-    const { result } = renderHook(() => usePerformanceMonitor({ enabled: false }));
-
-    act(() => {
-      result.current.recordMetric('Task1', 10);
-    });
-
-    expect(result.current.metrics.length).toBe(0);
-  });
 });

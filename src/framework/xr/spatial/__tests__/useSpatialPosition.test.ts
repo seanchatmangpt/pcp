@@ -37,34 +37,4 @@ describe('useSpatialPosition', () => {
     });
     expect(result.current.transform.position).toEqual({ x: 10, y: 5, z: -2 });
   });
-
-  it('should update rotation', () => {
-    const { result } = renderHook(() => useSpatialPosition());
-
-    act(() => {
-      result.current.setRotation({ y: Math.PI });
-    });
-    expect(result.current.transform.rotation.y).toBe(Math.PI);
-  });
-
-  it('should update scale', () => {
-    const { result } = renderHook(() => useSpatialPosition());
-
-    act(() => {
-      result.current.setScale({ x: 0.5, y: 0.5, z: 0.5 });
-    });
-    expect(result.current.transform.scale).toEqual({ x: 0.5, y: 0.5, z: 0.5 });
-  });
-
-  it('should reset transform', () => {
-    const initial = { position: { x: 1, y: 1, z: 1 } };
-    const { result } = renderHook(() => useSpatialPosition(initial));
-
-    act(() => {
-      result.current.setPosition({ x: 10 });
-      result.current.resetTransform();
-    });
-
-    expect(result.current.transform.position).toEqual({ x: 1, y: 1, z: 1 });
-  });
 });

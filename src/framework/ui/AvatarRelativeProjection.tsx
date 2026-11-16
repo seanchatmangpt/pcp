@@ -53,87 +53,33 @@ function useShallowStable<T>(obj: T): T {
 }
 
 function useMemoizedChildren(children: React.ReactNode): React.ReactNode[] {
-  const prevChildrenRef = React.useRef<React.ReactNode[]>([]);
-  const prevInputRef = React.useRef<React.ReactNode>(null);
-
   return React.useMemo(() => {
-    if (children === prevInputRef.current) {
-      return prevChildrenRef.current;
-    }
-
     const list: React.ReactNode[] = [];
-    React.Children.forEach(children, (child) => {
-      if (!child || !React.isValidElement(child)) return;
 
-      if (child.type === StackProtected || (child.type as any).displayName === 'StackProtected') {
-        const guardedChild = child as React.ReactElement<any>;
-        if (guardedChild.props.guard) {
-          React.Children.forEach(guardedChild.props.children, (nestedChild) => {
-            if (nestedChild) list.push(nestedChild);
-          });
-        }
-      } else if (
-        child.type === TabsProtected ||
-        (child.type as any).displayName === 'TabsProtected'
-      ) {
-        const guardedChild = child as React.ReactElement<any>;
-        if (guardedChild.props.guard) {
-          React.Children.forEach(guardedChild.props.children, (nestedChild) => {
-            if (nestedChild) list.push(nestedChild);
-          });
-        }
-      } else {
-        list.push(child);
-      }
-    });
+    const flatten = (nodes: React.ReactNode) => {
+      React.Children.forEach(nodes, (child) => {
+        if (!child || !React.isValidElement(child)) return;
 
-    const prevList = prevChildrenRef.current;
-    let isEquivalent = prevList.length === list.length;
-    if (isEquivalent) {
-      for (let i = 0; i < list.length; i++) {
-        const c1 = list[i];
-        const c2 = prevList[i];
-        if (!React.isValidElement(c1) || !React.isValidElement(c2)) {
-          if (c1 !== c2) {
-            isEquivalent = false;
-            break;
+        if (child.type === StackProtected || (child.type as any).displayName === 'StackProtected') {
+          const guardedChild = child as React.ReactElement<any>;
+          if (guardedChild.props.guard) {
+            flatten(guardedChild.props.children);
+          }
+        } else if (
+          child.type === TabsProtected ||
+          (child.type as any).displayName === 'TabsProtected'
+        ) {
+          const guardedChild = child as React.ReactElement<any>;
+          if (guardedChild.props.guard) {
+            flatten(guardedChild.props.children);
           }
         } else {
-          if (c1.type !== c2.type || c1.key !== c2.key) {
-            isEquivalent = false;
-            break;
-          }
-          const p1 = c1.props as any;
-          const p2 = c2.props as any;
-          const k1 = Object.keys(p1);
-          const k2 = Object.keys(p2);
-          if (k1.length !== k2.length) {
-            isEquivalent = false;
-            break;
-          }
-          for (const key of k1) {
-            if (key === 'children') {
-              if (p1.children !== p2.children) {
-                isEquivalent = false;
-                break;
-              }
-            } else if (p1[key] !== p2[key]) {
-              isEquivalent = false;
-              break;
-            }
-          }
-          if (!isEquivalent) break;
+          list.push(child);
         }
-      }
-    }
+      });
+    };
 
-    if (isEquivalent) {
-      prevInputRef.current = children;
-      return prevList;
-    }
-
-    prevChildrenRef.current = list;
-    prevInputRef.current = children;
+    flatten(children);
     return list;
   }, [children]);
 }
@@ -153,7 +99,7 @@ const StackComponent = React.forwardRef<any, any>(
 StackComponent.displayName = 'StackComponent';
 
 export const Stack = Object.assign(StackComponent, ExpoStack, {
-  AvatarRelativeProjection: ExpoStack.Screen,
+  Screen: ExpoStack?.Screen,
   Protected: StackProtected,
 }) as unknown as CustomStackType;
 
@@ -172,7 +118,7 @@ const TabsComponent = React.forwardRef<any, any>(
 TabsComponent.displayName = 'TabsComponent';
 
 export const Tabs = Object.assign(TabsComponent, ExpoTabs, {
-  AvatarRelativeProjection: ExpoTabs.Screen,
+  Screen: ExpoTabs?.Screen,
   Protected: TabsProtected,
 }) as unknown as CustomTabsType;
 
@@ -231,7 +177,8 @@ const AvatarProjectionCard = React.memo(
               style={[
                 matrixStyles.roleBadge,
                 { backgroundColor: roleColor + '20', borderColor: roleColor },
-              ]}>
+              ]}
+            >
               <Text style={[matrixStyles.roleBadgeText, { color: roleColor }]}>{role}</Text>
             </View>
             <Text style={matrixStyles.surfaceText} accessibilityRole="header">
@@ -248,7 +195,8 @@ const AvatarProjectionCard = React.memo(
               style={[
                 matrixStyles.visibilityText,
                 { color: projection.visible ? '#10B981' : '#64748B' },
-              ]}>
+              ]}
+            >
               {projection.visible ? 'Visible' : 'Hidden'}
             </Text>
           </View>
@@ -541,7 +489,8 @@ export function AvatarRelativeProjectionMatrixView({
                 onPress={decreaseOpenSlots}
                 accessible={true}
                 accessibilityRole="button"
-                accessibilityLabel="Decrease open slots">
+                accessibilityLabel="Decrease open slots"
+              >
                 <Text style={matrixStyles.btnText}>-</Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -549,7 +498,8 @@ export function AvatarRelativeProjectionMatrixView({
                 onPress={increaseOpenSlots}
                 accessible={true}
                 accessibilityRole="button"
-                accessibilityLabel="Increase open slots">
+                accessibilityLabel="Increase open slots"
+              >
                 <Text style={matrixStyles.btnText}>+</Text>
               </TouchableOpacity>
             </View>
@@ -593,12 +543,14 @@ export function AvatarRelativeProjectionMatrixView({
                     accessible={true}
                     accessibilityRole="button"
                     accessibilityLabel={`Set open slots to ${val}`}
-                    accessibilityState={{ selected: openSlots === val }}>
+                    accessibilityState={{ selected: openSlots === val }}
+                  >
                     <Text
                       style={[
                         matrixStyles.sliderStepText,
                         openSlots === val && matrixStyles.sliderStepTextActive,
-                      ]}>
+                      ]}
+                    >
                       {val}
                     </Text>
                   </TouchableOpacity>
@@ -618,7 +570,8 @@ export function AvatarRelativeProjectionMatrixView({
               onPress={addCandidate}
               accessible={true}
               accessibilityRole="button"
-              accessibilityLabel="Add Candidate">
+              accessibilityLabel="Add Candidate"
+            >
               <Text style={matrixStyles.addBtnText}>+ Add Candidate</Text>
             </TouchableOpacity>
           </View>
@@ -632,7 +585,8 @@ export function AvatarRelativeProjectionMatrixView({
                   onPress={() => removeCandidate(idx)}
                   accessible={true}
                   accessibilityRole="button"
-                  accessibilityLabel={`Remove candidate ${cand}`}>
+                  accessibilityLabel={`Remove candidate ${cand}`}
+                >
                   <FontAwesome
                     name="times-circle"
                     size={12}
@@ -657,7 +611,7 @@ export function AvatarRelativeProjectionMatrixView({
             value={stateHash}
             onChangeText={setStateHash}
             placeholder="State hash (e.g. vkg_genesis_a4f9)"
-            placeholderTextColor="#64748B"
+            placeholderTextColor="#475569"
             accessibilityLabel="VKG State Hash input"
             accessibilityHint="Edit the VKG state hash"
           />

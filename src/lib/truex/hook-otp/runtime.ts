@@ -1,4 +1,12 @@
-import { HookActorRef, HookMessage, HookBehavior, HookSupervisor, HookEffect, HookState, HookReceipt } from './types';
+import {
+  HookActorRef,
+  HookMessage,
+  HookBehavior,
+  HookSupervisor,
+  HookEffect,
+  HookState,
+  HookReceipt,
+} from './types';
 import { HookRegistry, HookActorInstance } from './registry';
 import { HookMailbox } from './mailbox';
 import { DefaultHookSupervisor } from './supervisor';
@@ -128,7 +136,7 @@ export class HookRuntime {
       } catch (err: any) {
         error = err;
         const action = await instance.supervisor.onFailure(err, msg, attempts);
-        
+
         this.emitTelemetry({
           type: 'supervisor_intervention',
           actorRef: ref,

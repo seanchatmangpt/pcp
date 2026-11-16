@@ -23,7 +23,8 @@ export const FocusTrapView = forwardRef<View, FocusTrapViewProps>(
         ref={resolvedRef}
         accessibilityViewIsModal={active}
         importantForAccessibility={active ? 'yes' : 'auto'}
-        {...props}>
+        {...props}
+      >
         {children}
       </View>
     );

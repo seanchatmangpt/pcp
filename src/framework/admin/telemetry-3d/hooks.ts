@@ -80,7 +80,8 @@ function getNodeColor(
     gateway: [0, 255, 150], // Greenish
   };
 
-  const [r, g, b] = baseColors[type];
+  const color = baseColors[type] || [128, 128, 128];
+  const [r, g, b] = color;
   // Increase red component with tension
   const finalR = Math.min(255, r + tension * 200);
   return `rgb(${finalR}, ${g}, ${b})`;

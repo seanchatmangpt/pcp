@@ -7,7 +7,7 @@ export interface IVKGClient {
   removeQuads(quads: Quad[]): Promise<void>;
   jsonLdToQuads(doc: any, defaultGraph?: Term): Quad[];
   quadsToJsonLd(quadsList: Quad[]): any[];
-  getSyncEngine(): any;
+  getSyncEngine(): VKGRdfSyncEngine;
   addJsonLd(doc: any): Promise<void>;
 }
 
@@ -40,8 +40,8 @@ export class VKGClientFacade implements IVKGClient {
     return this.client.quadsToJsonLd(quadsList);
   }
 
-  getSyncEngine(): any {
-    return this.client.getSyncEngine();
+  getSyncEngine(): VKGRdfSyncEngine {
+    return this.client.getSyncEngine() as VKGRdfSyncEngine;
   }
 
   /**

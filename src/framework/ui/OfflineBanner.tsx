@@ -1,7 +1,17 @@
-import React from 'react';
-import { View, Text, StyleSheet, Animated, TouchableOpacity } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useActorOpsStore } from '@/src/lib/actor/actorOps';
 import { Ionicons } from '@expo/vector-icons';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withSpring,
+  withRepeat,
+  withSequence,
+  runOnJS,
+  Easing as ReanimatedEasing,
+} from 'react-native-reanimated';
 
 export function OfflineBanner() {
   const networkOnline = useActorOpsStore((state) => state.networkOnline);
@@ -11,43 +21,28 @@ export function OfflineBanner() {
     networkOnline ? 'idle' : 'offline'
   );
 
-  const heightAnim = React.useRef(new Animated.Value(networkOnline ? 0 : 1)).current;
-  const opacityAnim = React.useRef(new Animated.Value(networkOnline ? 0 : 1)).current;
-  const pulseAnim = React.useRef(new Animated.Value(1)).current;
-  const rotateAnim = React.useRef(new Animated.Value(0)).current;
-  const successScaleAnim = React.useRef(new Animated.Value(0.3)).current;
+  const progress = useSharedValue(networkOnline ? 0 : 1);
+  const pulseVal = useSharedValue(1);
+  const rotateVal = useSharedValue(0);
+  const successScaleVal = useSharedValue(0.3);
 
   const prevNetworkOnline = React.useRef(networkOnline);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (networkOnline && !prevNetworkOnline.current) {
       // Transition from offline/reconnecting to online
       setStatus('connected');
 
       // Animate success scale
-      successScaleAnim.setValue(0.3);
-      Animated.spring(successScaleAnim, {
-        toValue: 1,
-        tension: 100,
-        friction: 5,
-        useNativeDriver: true,
-      }).start();
+      successScaleVal.value = 0.3;
+      successScaleVal.value = withSpring(1, { damping: 5, stiffness: 100 });
 
       // Hold success state for 1500ms, then animate closed
       const timer = setTimeout(() => {
-        Animated.parallel([
-          Animated.timing(heightAnim, {
-            toValue: 0,
-            duration: 350,
-            useNativeDriver: false,
-          }),
-          Animated.timing(opacityAnim, {
-            toValue: 0,
-            duration: 350,
-            useNativeDriver: false,
-          }),
-        ]).start(() => {
-          setStatus('idle');
+        progress.value = withTiming(0, { duration: 350 }, (finished) => {
+          if (finished) {
+            runOnJS(setStatus)('idle');
+          }
         });
       }, 1500);
 
@@ -55,73 +50,40 @@ export function OfflineBanner() {
     } else if (!networkOnline && prevNetworkOnline.current) {
       // Transition from online to offline
       setStatus('offline');
-      Animated.parallel([
-        Animated.timing(heightAnim, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: false,
-        }),
-        Animated.timing(opacityAnim, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: false,
-        }),
-      ]).start();
+      progress.value = withTiming(1, { duration: 300 });
     }
 
     prevNetworkOnline.current = networkOnline;
   }, [networkOnline]);
 
   // Handle pulse animation for offline icon
-  React.useEffect(() => {
-    let animation: Animated.CompositeAnimation | null = null;
+  useEffect(() => {
     if (status === 'offline') {
-      animation = Animated.loop(
-        Animated.sequence([
-          Animated.timing(pulseAnim, {
-            toValue: 0.6,
-            duration: 1200,
-            useNativeDriver: true,
-          }),
-          Animated.timing(pulseAnim, {
-            toValue: 1,
-            duration: 1200,
-            useNativeDriver: true,
-          }),
-        ])
+      pulseVal.value = withRepeat(
+        withSequence(
+          withTiming(0.6, { duration: 1200 }),
+          withTiming(1, { duration: 1200 })
+        ),
+        -1,
+        false
       );
-      animation.start();
     } else {
-      pulseAnim.setValue(1);
+      pulseVal.value = 1;
     }
-    return () => {
-      if (animation) {
-        animation.stop();
-      }
-    };
   }, [status]);
 
   // Handle rotation animation for reconnecting icon
-  React.useEffect(() => {
-    let animation: Animated.CompositeAnimation | null = null;
+  useEffect(() => {
     if (status === 'reconnecting') {
-      rotateAnim.setValue(0);
-      animation = Animated.loop(
-        Animated.timing(rotateAnim, {
-          toValue: 1,
-          duration: 1000,
-          useNativeDriver: true,
-        })
+      rotateVal.value = 0;
+      rotateVal.value = withRepeat(
+        withTiming(1, { duration: 1000, easing: ReanimatedEasing.linear }),
+        -1,
+        false
       );
-      animation.start();
     } else {
-      rotateAnim.setValue(0);
+      rotateVal.value = 0;
     }
-    return () => {
-      if (animation) {
-        animation.stop();
-      }
-    };
   }, [status]);
 
   const handleReconnect = () => {
@@ -134,29 +96,35 @@ export function OfflineBanner() {
     }
   };
 
+  const containerStyle = useAnimatedStyle(() => {
+    const height = progress.value * 56;
+    const opacity = progress.value;
+    const translateY = (1 - progress.value) * -20;
+    const borderBottomWidth = progress.value > 0.1 ? 1 : 0;
+    return {
+      height,
+      opacity,
+      borderBottomWidth,
+      transform: [{ translateY }],
+    };
+  });
+
+  const pulseStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: pulseVal.value }],
+    opacity: pulseVal.value,
+  }));
+
+  const rotateStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${rotateVal.value * 360}deg` }],
+  }));
+
+  const successScaleStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: successScaleVal.value }],
+  }));
+
   if (status === 'idle') {
     return null;
   }
-
-  const containerHeight = heightAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 56],
-  });
-
-  const containerTranslateY = heightAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [-20, 0],
-  });
-
-  const containerBorderWidth = heightAnim.interpolate({
-    inputRange: [0, 0.1, 1],
-    outputRange: [0, 0, 1],
-  });
-
-  const iconRotation = rotateAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
 
   const getAccessibilityLabel = () => {
     switch (status) {
@@ -179,20 +147,16 @@ export function OfflineBanner() {
       accessibilityLabel={getAccessibilityLabel()}
       style={[
         styles.bannerContainer,
-        {
-          height: containerHeight,
-          opacity: opacityAnim,
-          borderBottomWidth: containerBorderWidth,
-          transform: [{ translateY: containerTranslateY }],
-        },
+        containerStyle,
         status === 'reconnecting' && styles.bannerContainerReconnecting,
         status === 'connected' && styles.bannerContainerConnected,
-      ]}>
+      ]}
+    >
       <View style={styles.innerContainer}>
         {status === 'offline' && (
           <>
             <View style={styles.textAndIconContainer}>
-              <Animated.View style={{ transform: [{ scale: pulseAnim }], opacity: pulseAnim }}>
+              <Animated.View style={pulseStyle}>
                 <Ionicons name="cloud-offline" size={16} color="#78350F" style={styles.icon} />
               </Animated.View>
               <Text style={styles.bannerText} numberOfLines={2}>
@@ -201,9 +165,12 @@ export function OfflineBanner() {
             </View>
             <TouchableOpacity
               testID="reconnect-button"
+              accessibilityRole="button"
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
               style={styles.reconnectButton}
               onPress={handleReconnect}
-              activeOpacity={0.7}>
+              activeOpacity={0.7}
+            >
               <Text style={styles.reconnectButtonText}>Reconnect</Text>
             </TouchableOpacity>
           </>
@@ -212,7 +179,7 @@ export function OfflineBanner() {
         {status === 'reconnecting' && (
           <>
             <View style={styles.textAndIconContainer}>
-              <Animated.View style={{ transform: [{ rotate: iconRotation }] }}>
+              <Animated.View style={rotateStyle}>
                 <Ionicons name="sync-outline" size={16} color="#0369A1" style={styles.icon} />
               </Animated.View>
               <Text style={[styles.bannerText, styles.bannerTextReconnecting]} numberOfLines={2}>
@@ -221,7 +188,8 @@ export function OfflineBanner() {
             </View>
             <View
               style={[styles.reconnectButton, styles.buttonDisabled]}
-              testID="reconnecting-indicator">
+              testID="reconnecting-indicator"
+            >
               <Text style={styles.reconnectButtonTextDisabled}>Connecting</Text>
             </View>
           </>
@@ -229,7 +197,7 @@ export function OfflineBanner() {
 
         {status === 'connected' && (
           <View style={[styles.textAndIconContainer, { justifyContent: 'center', flex: 1 }]}>
-            <Animated.View style={{ transform: [{ scale: successScaleAnim }] }}>
+            <Animated.View style={successScaleStyle}>
               <Ionicons name="checkmark-circle" size={16} color="#065F46" style={styles.icon} />
             </Animated.View>
             <Text style={[styles.bannerText, styles.bannerTextConnected]} numberOfLines={1}>

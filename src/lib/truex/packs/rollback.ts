@@ -13,7 +13,9 @@ export class HookPackRollback {
     if (!existing) {
       throw new Error(`Pack ${name} is not installed`);
     }
-    console.log(`[Pack Rollback] Rolling back ${name} from v${existing.version} to v${targetVersion}...`);
+    console.log(
+      `[Pack Rollback] Rolling back ${name} from v${existing.version} to v${targetVersion}...`
+    );
     const updated: HookPackManifest = {
       ...existing,
       version: targetVersion,

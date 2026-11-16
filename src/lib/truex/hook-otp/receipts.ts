@@ -1,6 +1,6 @@
 import { HookReceipt, HookActorRef } from './types';
 import { sha256, stringifyActorRef } from './actorRef';
-import type { ReceiptShapeTs } from '../../../types/bindings';
+import type { ReceiptShapeTs } from '@wasm4pm/types';
 
 export function generateReceipt(opts: {
   tenantId: string;
@@ -88,4 +88,3 @@ export function toReceiptShapeTs(receipt: HookReceipt): ReceiptShapeTs {
     fitness: 1.0,
   };
 }
-

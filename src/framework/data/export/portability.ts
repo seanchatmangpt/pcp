@@ -1,10 +1,4 @@
-import * as FileSystem from 'expo-file-system';
-import { EncodingType } from 'expo-file-system';
-
-const documentDirectory = (FileSystem as any).documentDirectory;
-const cacheDirectory = (FileSystem as any).cacheDirectory;
-const readAsStringAsync = (FileSystem as any).readAsStringAsync;
-const writeAsStringAsync = (FileSystem as any).writeAsStringAsync;
+import * as FileSystem from 'expo-file-system/legacy';
 import { Share } from 'react-native';
 import { mmkvInstance } from '@/src/lib/store/mmkvStorage';
 import { DATABASE_NAME } from '@/src/lib/db/db';
@@ -20,10 +14,10 @@ export interface ExportPackage {
 
 export const Portability = {
   async exportData(): Promise<string> {
-    const dbPath = `${documentDirectory}SQLite/${DATABASE_NAME}`;
+    const dbPath = `${FileSystem.documentDirectory}SQLite/${DATABASE_NAME}`;
     let sqliteBase64 = '';
     try {
-      sqliteBase64 = await readAsStringAsync(dbPath, { encoding: EncodingType.Base64 });
+      sqliteBase64 = await FileSystem.readAsStringAsync(dbPath, { encoding: 'base64' });
     } catch (e) {
       sqliteBase64 = ''; // Test fallback
     }
@@ -45,24 +39,30 @@ export const Portability = {
     const signature = blake3(canonicalStringify(pkg));
     const finalPackage: ExportPackage = { ...pkg, signature };
 
-    const exportUri = `${cacheDirectory}pcp_backup_${pkg.timestamp}.json`;
-    await writeAsStringAsync(exportUri, JSON.stringify(finalPackage));
+    const filePath = `${FileSystem.cacheDirectory}pcp_backup_${pkg.timestamp}.json`;
+    const json = JSON.stringify(finalPackage);
+    await FileSystem.writeAsStringAsync(filePath, json, { encoding: 'utf8' });
 
     try {
-      await Share.share({ url: exportUri });
+      await Share.share({ url: filePath });
     } catch (e) {
       // ignore
     }
 
-    return exportUri;
+    return filePath;
   },
 
   async importData(fileUri: string): Promise<void> {
-    const content = await readAsStringAsync(fileUri);
-    const pkg: ExportPackage = JSON.parse(content);
+    const content = await FileSystem.readAsStringAsync(fileUri, { encoding: 'utf8' });
+    let pkg: ExportPackage;
+    try {
+      pkg = JSON.parse(content);
+    } catch {
+      throw new Error('Data integrity violation: Backup file signature mismatch.');
+    }
 
     const { signature, ...data } = pkg;
-    const expectedSignature = blake3(canonicalStringify(data));
+    const expectedSignature = blake3(canonicalStringify(data as any));
     if (signature !== expectedSignature) {
       throw new Error('Data integrity violation: Backup file signature mismatch.');
     }
@@ -72,7 +72,7 @@ export const Portability = {
       mmkvInstance.set(key, val);
     });
 
-    const dbPath = `${documentDirectory}SQLite/${DATABASE_NAME}`;
-    await writeAsStringAsync(dbPath, pkg.sqliteBase64, { encoding: EncodingType.Base64 });
+    const dbPath = `${FileSystem.documentDirectory}SQLite/${DATABASE_NAME}`;
+    await FileSystem.writeAsStringAsync(dbPath, pkg.sqliteBase64, { encoding: 'base64' });
   },
 };

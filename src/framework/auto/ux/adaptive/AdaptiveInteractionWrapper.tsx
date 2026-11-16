@@ -17,6 +17,8 @@ export interface AdaptiveInteractionConfig {
   trustScore: number;
   /** Current average FPS. */
   fps: number;
+  /** Whether to use a simplified layout for performance. */
+  simplifiedLayout: boolean;
 }
 
 const AdaptiveContext = createContext<AdaptiveInteractionConfig>({
@@ -25,6 +27,7 @@ const AdaptiveContext = createContext<AdaptiveInteractionConfig>({
   animationSpeedScale: 1.0,
   trustScore: 1.0,
   fps: 60,
+  simplifiedLayout: false,
 });
 
 /**
@@ -67,7 +70,10 @@ export const AdaptiveInteractionWrapper: React.FC<AdaptiveInteractionWrapperProp
     const fpsModifier = avgFps < 30 ? 2.5 : avgFps < 45 ? 1.8 : 1.0;
     const hitSlop = Math.round(baseHitSlop * trustModifier * fpsModifier);
 
-    // 2. Haptic Profile Selection
+    // 2. Simplified Layout Flag
+    const simplifiedLayout = avgFps < 20;
+
+    // 3. Haptic Profile Selection
     let hapticProfile = HapticFeedbackPattern.SELECTION;
     if (trustScore < 0.4) {
       hapticProfile = HapticFeedbackPattern.HEAVY; // Emphasize caution
@@ -93,6 +99,7 @@ export const AdaptiveInteractionWrapper: React.FC<AdaptiveInteractionWrapperProp
       animationSpeedScale,
       trustScore,
       fps: avgFps,
+      simplifiedLayout,
     };
   }, [trustScore, avgFps, baseHitSlop]);
 

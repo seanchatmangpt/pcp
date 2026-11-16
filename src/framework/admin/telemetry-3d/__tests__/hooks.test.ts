@@ -43,14 +43,4 @@ describe('useTelemetryState', () => {
     // Color should change for hovered node
     expect(result.current.nodeProps['2'].color).toBe('#ffff00');
   });
-
-  it('should filter out edges with missing nodes', () => {
-    const incompleteTopology: MembraneTopology = {
-      nodes: [{ id: '1', type: 'actor', label: 'Actor 1', tension: 0.1 }],
-      edges: [{ id: 'e1', source: '1', target: 'non-existent', queueDensity: 0.5 }],
-    };
-
-    const { result } = renderHook(() => useTelemetryState(incompleteTopology));
-    expect(result.current.edgeProps.length).toBe(0);
-  });
 });

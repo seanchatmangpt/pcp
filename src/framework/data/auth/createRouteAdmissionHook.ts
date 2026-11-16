@@ -1,7 +1,4 @@
-type RouteDefinition = any;
-type RefusalReason = any;
-type ParticipantBasis = any;
-type IdentityBoundary = any;
+import { RouteDefinition, ParticipantBasis, RefusalReason, IdentityBoundary } from '../../../route-law/types';
 
 export interface UseRouteAdmissionOptions {
   /** Optional custom resolver to convert the raw session to a ParticipantBasis */

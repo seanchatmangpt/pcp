@@ -54,7 +54,8 @@ export function AutoFixer({ type, testID }: AutoFixerProps) {
           style={styles.button}
           onPress={handleFix}
           disabled={fixing}
-          activeOpacity={0.7}>
+          activeOpacity={0.7}
+        >
           {fixing ? (
             <ActivityIndicator color="#FFFFFF" size="small" />
           ) : (

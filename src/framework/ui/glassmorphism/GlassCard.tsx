@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React from 'react';
 import { View } from 'react-native';
 import { useTheme } from '../theme/useTheme';
@@ -43,7 +42,8 @@ export const GlassCard: React.FC<GlassCardProps> = ({
         'rounded-2xl overflow-hidden backdrop-blur-md', // backdrop-blur-md for web
         className
       )}
-      {...props}>
+      {...props}
+    >
       {children}
     </View>
   );

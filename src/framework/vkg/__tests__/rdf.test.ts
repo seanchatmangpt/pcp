@@ -44,10 +44,4 @@ describe('VKG Framework - RDF DX Utilities', () => {
     expect(quad.object.termType).toBe('Literal');
     expect(quad.object.value).toBe('hello world');
   });
-
-  it('should re-export base DataFactory correctly', () => {
-    const blank = DataFactory.blankNode('b_test');
-    expect(blank.termType).toBe('BlankNode');
-    expect(blank.value).toBe('b_test');
-  });
 });

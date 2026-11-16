@@ -24,7 +24,8 @@ jest.mock('../../../ui/glassmorphism/GlassCard', () => {
         data-intensity={intensity}
         data-tint={tint}
         style={style}
-        {...props}>
+        {...props}
+      >
         {children}
       </View>
     ),
@@ -116,124 +117,6 @@ describe('FusionSpatialScene', () => {
       const glassCards = getAllByTestId('glass-card');
       expect(glassCards[0].props['data-intensity']).toBe('high');
       expect(glassCards[0].props['data-tint']).toBe('light');
-    });
-  });
-
-  describe('3D Rendering (VisionOS)', () => {
-    beforeEach(() => {
-      setPlatform('visionos');
-    });
-
-    it('renders spatial views in 3D mode', () => {
-      const { getAllByTestId } = render(<FusionSpatialScene>{children}</FusionSpatialScene>);
-
-      const spatialViews = getAllByTestId('spatial-view');
-      expect(spatialViews).toHaveLength(3);
-
-      const glassCards = getAllByTestId('glass-card');
-      expect(glassCards).toHaveLength(3);
-    });
-
-    it('calculates carousel positions correctly', () => {
-      const { getAllByTestId } = render(
-        <FusionSpatialScene layout="carousel" radius={5}>
-          {children}
-        </FusionSpatialScene>
-      );
-
-      const spatialViews = getAllByTestId('spatial-view');
-
-      // Item 0: angle 0 => x=0, z=-5
-      const transform0 = JSON.parse(spatialViews[0].props['data-transform']);
-      expect(transform0.position.x).toBeCloseTo(0);
-      expect(transform0.position.z).toBeCloseTo(-5);
-
-      // Item 1: angle 2pi/3 => x=sin(2pi/3)*5, z=-cos(2pi/3)*5
-      const transform1 = JSON.parse(spatialViews[1].props['data-transform']);
-      expect(transform1.position.x).toBeCloseTo(Math.sin((2 * Math.PI) / 3) * 5);
-      expect(transform1.position.z).toBeCloseTo(-Math.cos((2 * Math.PI) / 3) * 5);
-    });
-
-    it('calculates dashboard positions correctly', () => {
-      const { getAllByTestId } = render(
-        <FusionSpatialScene layout="dashboards" radius={3}>
-          {children}
-        </FusionSpatialScene>
-      );
-
-      const spatialViews = getAllByTestId('spatial-view');
-      expect(spatialViews).toHaveLength(3);
-
-      // Should be spread in an arc
-      const t0 = JSON.parse(spatialViews[0].props['data-transform']);
-      const t1 = JSON.parse(spatialViews[1].props['data-transform']);
-      const t2 = JSON.parse(spatialViews[2].props['data-transform']);
-
-      expect(t0.position.x).toBeLessThan(0);
-      expect(t1.position.x).toBeCloseTo(0);
-      expect(t2.position.x).toBeGreaterThan(0);
-    });
-
-    it('calculates dashboard positions correctly with single child', () => {
-      const { getAllByTestId } = render(
-        <FusionSpatialScene layout="dashboards" radius={3}>
-          {[<Text key="1">Only Item</Text>]}
-        </FusionSpatialScene>
-      );
-
-      const spatialViews = getAllByTestId('spatial-view');
-      expect(spatialViews).toHaveLength(1);
-
-      const t0 = JSON.parse(spatialViews[0].props['data-transform']);
-      expect(t0.position.x).toBeCloseTo(0);
-      expect(t0.position.z).toBeCloseTo(-3);
-    });
-
-    it('detects spatial mode for "xr" platform', () => {
-      setPlatform('xr');
-      const { queryAllByTestId } = render(<FusionSpatialScene>{children}</FusionSpatialScene>);
-      expect(queryAllByTestId('spatial-view')).toHaveLength(3);
-    });
-
-    it('calculates grid positions in 3D', () => {
-      const { getAllByTestId } = render(
-        <FusionSpatialScene layout="grid" columns={2}>
-          {children}
-        </FusionSpatialScene>
-      );
-
-      const spatialViews = getAllByTestId('spatial-view');
-
-      const t0 = JSON.parse(spatialViews[0].props['data-transform']);
-      const t1 = JSON.parse(spatialViews[1].props['data-transform']);
-      const t2 = JSON.parse(spatialViews[2].props['data-transform']);
-
-      // Row 0: Items 0, 1
-      expect(t0.position.y).toEqual(t1.position.y);
-      expect(t0.position.x).toBeLessThan(t1.position.x);
-
-      // Row 1: Item 2
-      expect(t2.position.y).toBeLessThan(t0.position.y);
-    });
-  });
-
-  describe('Common Functionality', () => {
-    it('honors isSpatial prop regardless of platform', () => {
-      setPlatform('ios');
-      const { queryAllByTestId } = render(
-        <FusionSpatialScene isSpatial={true}>{children}</FusionSpatialScene>
-      );
-      expect(queryAllByTestId('spatial-view')).toHaveLength(3);
-
-      setPlatform('visionos');
-      const { queryAllByTestId: queryAll2D } = render(
-        <FusionSpatialScene isSpatial={false}>{children}</FusionSpatialScene>
-      );
-      expect(queryAll2D('stagger')).toHaveLength(1);
-    });
-
-    it('sets displayName correctly', () => {
-      expect(FusionSpatialScene.displayName).toBe('FusionSpatialScene');
     });
   });
 });

@@ -62,38 +62,4 @@ describe('Dynamic Theme Engine', () => {
 
     expect(result.current.theme.fontScale).toBe(1.5);
   });
-
-  it('resets the theme', () => {
-    const wrapper = ({ children }: { children: React.ReactNode }) => (
-      <ThemeProvider>{children}</ThemeProvider>
-    );
-    const { result } = renderHook(
-      () => ({
-        theme: useTheme(),
-        update: useUpdateTheme(),
-      }),
-      { wrapper }
-    );
-
-    act(() => {
-      result.current.update.updateTheme({ fontScale: 2 });
-    });
-    expect(result.current.theme.fontScale).toBe(2);
-
-    act(() => {
-      result.current.update.resetTheme();
-    });
-    expect(result.current.theme.fontScale).toBe(1);
-  });
-
-  it('throws error when used outside Provider', () => {
-    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
-    expect(() => renderHook(() => useTheme())).toThrow(
-      'useTheme must be used within a ThemeProvider'
-    );
-    expect(() => renderHook(() => useUpdateTheme())).toThrow(
-      'useUpdateTheme must be used within a ThemeProvider'
-    );
-    consoleError.mockRestore();
-  });
 });

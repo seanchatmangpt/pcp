@@ -3,7 +3,7 @@
  *
  * Implements the Truex Membrane Law:
  *   - All zustand/MMKV store mutations pass through proxyable membrane traps
- *   - Every mutation emits a BLAKE3 receipt (3-tier fallback: BLAKE3 → SHA256 → hex-timestamp)
+ *   - Every mutation emits a BLAKE3 receipt (2-tier fallback: BLAKE3 → SHA256)
  *   - Claimed<T> → Witnessed<T> typestate transitions require cryptographic proof obligation
  *   - verifyMembraneIntegrity() scans for unwitnessed transitions and returns a typed report
  *
@@ -44,7 +44,7 @@ export function claimValue<T>(value: T): Claimed<T> {
 
 // ─── Receipt Types ────────────────────────────────────────────────────────────
 
-export type ReceiptAlgorithm = 'BLAKE3' | 'SHA256' | 'FALLBACK';
+export type ReceiptAlgorithm = 'BLAKE3' | 'SHA256';
 
 /**
  * A BLAKE3-first hardening receipt. Includes the algorithm tier used,
@@ -63,7 +63,7 @@ export interface HardeningReceipt {
   readonly algorithm: ReceiptAlgorithm;
   /** Hash of the previous receipt in the chain ('' for genesis) */
   readonly previousHash: string;
-  /** BLAKE3/SHA256/fallback hash of the serialized new state */
+  /** BLAKE3/SHA256 hash of the serialized new state */
   readonly stateHash: string;
   /** Chained delta hash: hash(previousHash + stateHash) */
   readonly deltaHash: string;
@@ -96,13 +96,12 @@ export interface MembraneIntegrityReport {
   readonly integrityScore: number; // 0.0 – 1.0
 }
 
-// ─── BLAKE3 3-Tier Fallback Hash ──────────────────────────────────────────────
+// ─── BLAKE3 2-Tier Fallback Hash ──────────────────────────────────────────────
 
 /**
- * Computes a receipt hash using a 3-tier fallback strategy:
+ * Computes a receipt hash using a 2-tier fallback strategy:
  *   1. BLAKE3 (primary — fastest, largest output space)
  *   2. SHA256 (secondary — proven, standards-compliant)
- *   3. Hex timestamp concatenation (emergency fallback — never lost receipt)
  *
  * All tiers produce a deterministic output for the same inputs.
  */
@@ -120,33 +119,18 @@ function computeReceiptHash(
     }
     throw new Error('BLAKE3 produced invalid output');
   } catch (_blake3Err) {
-    try {
-      const hash = sha256(input);
-      if (hash && hash.length >= 32) {
-        return { hash, algorithm: 'SHA256' };
-      }
-      throw new Error('SHA256 produced invalid output');
-    } catch (_sha256Err) {
-      // Emergency fallback: hex-encoded timestamp + length-padded input prefix
-      // Portable implementation (no Buffer / Node.js API required)
-      const ts = Date.now().toString(16).padStart(16, '0');
-      const len = serialized.length.toString(16).padStart(8, '0');
-      const slice = input.slice(0, 16);
-      let prefix = '';
-      for (let ci = 0; ci < slice.length; ci++) {
-        prefix += slice.charCodeAt(ci).toString(16).padStart(2, '0');
-      }
-      prefix = prefix.padStart(32, '0').slice(0, 32);
-      return {
-        hash: `${ts}${len}${prefix}`.slice(0, 64).padEnd(64, '0'),
-        algorithm: 'FALLBACK',
-      };
+    const hash = sha256(input);
+    if (hash && hash.length >= 32) {
+      return { hash, algorithm: 'SHA256' };
     }
+    throw new Error(
+      `Cryptographic integrity failure: BLAKE3 and SHA-256 both failed to generate a valid hash. (BLAKE3 error: ${(_blake3Err as Error).message})`
+    );
   }
 }
 
 /**
- * Computes a stateHash for a value using 3-tier fallback.
+ * Computes a stateHash for a value using 2-tier fallback.
  */
 function computeStateHash(value: any): { hash: string; algorithm: ReceiptAlgorithm } {
   return computeReceiptHash('', value);
@@ -168,6 +152,9 @@ class HardeningReceiptChain {
 
   public append(receipt: HardeningReceipt): void {
     this.receipts.push(receipt);
+    if (this.receipts.length > 1000) {
+      this.receipts.shift();
+    }
   }
 
   public getAll(): readonly HardeningReceipt[] {
@@ -208,11 +195,16 @@ class HardeningReceiptChain {
         } else if (rec.algorithm === 'SHA256') {
           expectedDelta = sha256(input);
         } else {
-          // FALLBACK: accept stored value (cannot re-derive without serialized data)
-          expectedDelta = rec.deltaHash;
+          return {
+            valid: false,
+            error: `Chain broken at index ${i}: insecure or unknown algorithm '${rec.algorithm}'`,
+          };
         }
-      } catch {
-        expectedDelta = rec.deltaHash; // trust stored value if re-derivation fails
+      } catch (err) {
+        return {
+          valid: false,
+          error: `Chain broken at index ${i}: failed to re-derive hash: ${(err as Error).message}`,
+        };
       }
 
       if (rec.deltaHash !== expectedDelta) {
@@ -319,14 +311,11 @@ export class MembraneHardeningLayer {
     try {
       if (algorithm === 'BLAKE3') {
         deltaHash = blake3(previousHash + stateHash);
-      } else if (algorithm === 'SHA256') {
-        deltaHash = sha256(previousHash + stateHash);
       } else {
-        // FALLBACK: simple concatenation + zero-pad
-        deltaHash = (previousHash + stateHash).slice(0, 64).padEnd(64, '0');
+        deltaHash = sha256(previousHash + stateHash);
       }
-    } catch {
-      deltaHash = sha256(previousHash + stateHash);
+    } catch (err) {
+      throw new Error(`Failed to compute deltaHash: ${(err as Error).message}`);
     }
 
     const receipt: HardeningReceipt = {

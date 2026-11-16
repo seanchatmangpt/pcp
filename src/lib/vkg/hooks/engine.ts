@@ -64,7 +64,6 @@ export class VkgHookEngine {
     for (const hook of this.hooks) {
       // Very naive pattern matcher for speed
       if (hook.condition.kind === 'pattern' && hook.condition.pattern === delta.predicate) {
-        
         if (hook.mode === 'block') {
           return; // Block effect overrides
         }
@@ -76,7 +75,7 @@ export class VkgHookEngine {
           // Immediately queue to outbox
           this.outbox.enqueue(delta, hook, false);
         }
-        
+
         // Increase fanout for subsequent hook cycles
         this.currentFanout++;
       }
@@ -98,12 +97,12 @@ export class VkgHookEngine {
   getMetrics(): PropagationMetrics {
     // Determine activations per minute based on current 1-second window
     const rate = this.windowActivationCount * 60;
-    
+
     return {
       activationRate: rate,
       fanout: this.currentFanout,
       cascadeDepth: this.currentDepth,
-      oscillationScore: 0 // Mocked for now
+      oscillationScore: 0, // Mocked for now
     };
   }
 

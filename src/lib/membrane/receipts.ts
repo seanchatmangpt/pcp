@@ -45,7 +45,7 @@ export class Receipts {
       deltaHash: hash,
       previousHash: prevHash,
       error: errorMsg,
-      resultHash
+      resultHash,
     };
 
     this.append(receipt);

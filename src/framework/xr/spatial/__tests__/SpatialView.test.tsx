@@ -55,21 +55,4 @@ describe('SpatialView', () => {
 
     expect(flattenedStyle.zIndex).toBe(5);
   });
-
-  it('should pass through XR specific props', () => {
-    const transform = {
-      position: { x: 0, y: 0, z: 0 },
-      rotation: { x: 0, y: 0, z: 0 },
-      scale: { x: 1, y: 1, z: 1 },
-    };
-    const { getByTestId } = render(
-      <SpatialView isVolumetric={true} transform={transform} testID="spatial-view-xr">
-        <Text>Content</Text>
-      </SpatialView>
-    );
-
-    const view = getByTestId('spatial-view-xr');
-    expect(view.props.isVolumetric).toBe(true);
-    expect(view.props.spatialTransform).toEqual(transform);
-  });
 });

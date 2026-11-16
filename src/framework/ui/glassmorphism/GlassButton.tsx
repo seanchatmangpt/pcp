@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useCallback } from 'react';
 import { Pressable, Text, StyleSheet } from 'react-native';
 import Animated, {
@@ -53,8 +52,7 @@ export const GlassButton: React.FC<GlassButtonProps> = ({
   }, [scale, opacity]);
 
   return (
-    // @ts-ignore
-      <AnimatedPressable
+    <AnimatedPressable
       onPress={onPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
@@ -72,7 +70,8 @@ export const GlassButton: React.FC<GlassButtonProps> = ({
         'px-6 py-3 rounded-xl items-center justify-center backdrop-blur-sm',
         disabled && 'opacity-50',
         className
-      )}>
+      )}
+    >
       {typeof children === 'string' ? (
         <Text
           style={[
@@ -82,7 +81,8 @@ export const GlassButton: React.FC<GlassButtonProps> = ({
               fontWeight: '600',
             },
             textStyle,
-          ]}>
+          ]}
+        >
           {children}
         </Text>
       ) : (

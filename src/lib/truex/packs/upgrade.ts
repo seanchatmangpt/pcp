@@ -14,7 +14,9 @@ export class HookPackUpgrade {
       this.registry.register(newManifest);
       return true;
     }
-    console.log(`[Pack Upgrade] Upgrading ${newManifest.name} from v${existing.version} to v${newManifest.version}...`);
+    console.log(
+      `[Pack Upgrade] Upgrading ${newManifest.name} from v${existing.version} to v${newManifest.version}...`
+    );
     this.registry.register(newManifest);
     return true;
   }

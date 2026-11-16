@@ -106,7 +106,8 @@ export const MfaProvider: React.FC<MfaProviderProps> = ({
         verify,
         confirm,
         cancel,
-      }}>
+      }}
+    >
       {children}
     </MfaContext.Provider>
   );

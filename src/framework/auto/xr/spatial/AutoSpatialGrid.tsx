@@ -89,7 +89,8 @@ export const AutoSpatialGrid: React.FC<AutoSpatialGridProps> = ({
                   padding: gap / 2,
                 },
                 itemStyle,
-              ]}>
+              ]}
+            >
               {child}
             </FadeIn>
           ))}
@@ -133,7 +134,8 @@ export const AutoSpatialGrid: React.FC<AutoSpatialGridProps> = ({
           >
             <Animated.View
               entering={ReanimatedFadeIn.delay(index * stagger).duration(600)}
-              style={itemStyle}>
+              style={itemStyle}
+            >
               {child}
             </Animated.View>
           </SpatialView>

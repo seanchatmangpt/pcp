@@ -7,6 +7,7 @@ import {
   ViewStyle,
   TextStyle,
 } from 'react-native';
+import { useTheme } from '../../ui/theme/useTheme';
 
 export interface CommandButtonProps {
   title: string;
@@ -27,6 +28,7 @@ export function CommandButton({
   variant = 'primary',
   testID,
 }: CommandButtonProps) {
+  const theme = useTheme();
   const [loading, setLoading] = useState(false);
 
   const handlePress = async () => {
@@ -70,6 +72,11 @@ export function CommandButton({
   const buttonStyle = [
     styles.baseButton,
     vStyles.button,
+    variant === 'secondary' && { borderColor: theme.colors.border },
+    disabled && {
+      backgroundColor: theme.colors.card,
+      borderColor: theme.colors.border,
+    },
     disabled && styles.disabledButton,
     ...(Array.isArray(style) ? style : [style || {}]),
   ];
@@ -91,7 +98,8 @@ export function CommandButton({
       accessible={true}
       accessibilityRole="button"
       accessibilityLabel={title}
-      accessibilityState={{ disabled: disabled || loading, busy: loading }}>
+      accessibilityState={{ disabled: disabled || loading, busy: loading }}
+    >
       {loading ? (
         <ActivityIndicator
           size="small"

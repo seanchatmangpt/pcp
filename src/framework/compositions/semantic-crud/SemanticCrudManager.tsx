@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Alert, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { AlertManager } from '@/src/framework/ui/dialog/AlertManager';
 import { SemanticCrudManagerProps, SemanticCrudState } from './types';
 import { SemanticListView } from './SemanticListView';
 import { SemanticForm } from '../../data/forms/SemanticForm';
@@ -68,7 +69,7 @@ export const SemanticCrudManager: React.FC<SemanticCrudManagerProps> = ({
 
       setState((prev) => ({ ...prev, mode: 'list', selectedEntityId: null }));
     } catch (error) {
-      Alert.alert('Persistence Error', 'Failed to save semantic data to the graph.');
+      AlertManager.alert('Persistence Error', 'Failed to save semantic data to the graph.');
     }
   };
 
@@ -111,19 +112,26 @@ export const SemanticCrudManager: React.FC<SemanticCrudManagerProps> = ({
             <TouchableOpacity
               style={[styles.actionButton, styles.editButton]}
               onPress={handleEdit}
-              testID="edit-button">
+              testID="edit-button"
+            >
               <Text style={styles.buttonText}>Edit</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={[styles.actionButton, styles.deleteButton]}
               onPress={handleDelete}
-              testID="delete-button">
+              testID="delete-button"
+            >
               <Text style={styles.buttonText}>Delete</Text>
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity style={styles.backButton} onPress={handleCancel} testID="back-button">
+          <TouchableOpacity
+            accessibilityRole="button"
+            style={styles.backButton}
+            onPress={handleCancel}
+            testID="back-button"
+          >
             <Text style={styles.backButtonText}>Back to List</Text>
           </TouchableOpacity>
         </ScrollView>

@@ -693,4 +693,3 @@ export function fuzzLog(log: OcelLog, mutationType: MutationType, targetCaseId?:
 export function generateLogTs(traces: AgentExecutionTrace[]): OcelLogTs {
   return toOcelLogTs(generateLog(traces));
 }
-

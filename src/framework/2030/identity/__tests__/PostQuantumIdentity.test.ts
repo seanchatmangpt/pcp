@@ -1,16 +1,12 @@
 /**
- * @fileoverview Test suite for the Post-Quantum Identity framework.
- *
- * Clickable file references:
- * - Source: [PostQuantumZkEngine.ts](file:///Users/sac/pcpapp/src/framework/2030/identity/PostQuantumZkEngine.ts)
- * - Types: [types.ts](file:///Users/sac/pcpapp/src/framework/2030/identity/types.ts)
- * - Test: [PostQuantumIdentity.test.ts](file:///Users/sac/pcpapp/src/framework/2030/identity/__tests__/PostQuantumIdentity.test.ts)
+ * @fileoverview Consolidated test suite for the Post-Quantum Identity framework.
  */
 
 import { PostQuantumZkEngine } from '../PostQuantumZkEngine';
 import { ZkClaim } from '../../../auth/zkp/types';
-import { PqZkProof, PqSignature, PqReceipt } from '../types';
+import { PqZkProof, PqSignature } from '../types';
 import { pqZkEngine } from '../index';
+import { sha256 } from '@/src/lib/crypto/receipts';
 
 const validSnarkProofData = JSON.stringify({
   pi_a: ['12345678901', '12345678902'],
@@ -21,11 +17,39 @@ const validSnarkProofData = JSON.stringify({
   pi_c: ['12345678907', '12345678908'],
 });
 
-describe('PostQuantumZkEngine', () => {
+function generateLamportKeyPair(): { publicKey: string; privateKey: string[] } {
+  const privateKey: string[] = [];
+  let publicKey = '';
+  for (let i = 0; i < 256; i++) {
+    const sk0 = sha256(`sk_${i}_0_${Math.random()}`);
+    const sk1 = sha256(`sk_${i}_1_${Math.random()}`);
+    privateKey.push(sk0, sk1);
+    publicKey += sha256(sk0) + sha256(sk1);
+  }
+  return { publicKey, privateKey };
+}
+
+function signLamport(message: string, privateKey: string[]): string {
+  const msgHash = sha256(message);
+  let signature = '';
+  for (let i = 0; i < 256; i++) {
+    const charIndex = Math.floor(i / 4);
+    const bitIndex = i % 4;
+    const hexChar = msgHash[charIndex];
+    const val = parseInt(hexChar, 16);
+    const bit = val & (1 << bitIndex) ? 1 : 0;
+
+    const sk = privateKey[i * 2 + bit];
+    signature += sk;
+  }
+  return signature;
+}
+
+describe('PostQuantumIdentity Framework', () => {
   let engine: PostQuantumZkEngine;
   const mockClaim: ZkClaim = {
-    id: 'claim-123',
-    field: 'age',
+    id: 'claim-123-quantum',
+    field: 'votingAge',
     operator: 'GTE',
     threshold: 18,
   };
@@ -40,10 +64,10 @@ describe('PostQuantumZkEngine', () => {
 
   it('should verify a standard ZK proof', async () => {
     const proof: PqZkProof = {
-      claimId: 'claim-123',
+      claimId: 'claim-123-quantum',
       proofData: validSnarkProofData,
       publicSignals: ['18'],
-      enclaveSignature: 'valid-signature',
+      enclaveSignature: '0x' + '1'.repeat(40),
     };
 
     const result = await engine.verify(mockClaim, proof);
@@ -52,257 +76,76 @@ describe('PostQuantumZkEngine', () => {
     expect(result.quantumResistant).toBe(false);
   });
 
-  it('should verify a proof with PQ signature', async () => {
-    const pqSignature: PqSignature = {
-      algorithm: 'Dilithium5',
-      data: 'valid-signature',
-      publicKey: 'valid-pubkey',
-    };
+  describe('Post-Quantum Signature Verification', () => {
+    it('verifies a valid Lamport signature (Dilithium5 or SPHINCS+) on a ZK proof', async () => {
+      const { publicKey, privateKey } = generateLamportKeyPair();
+      const signatureData = signLamport(validSnarkProofData, privateKey);
 
-    const proof: PqZkProof = {
-      claimId: 'claim-123',
-      proofData: validSnarkProofData,
-      publicSignals: ['18'],
-      pqSignature,
-      enclaveSignature: 'valid-signature',
-    };
+      const pqSignature: PqSignature = {
+        algorithm: 'Dilithium5',
+        data: signatureData,
+        publicKey: publicKey,
+      };
 
-    const result = await engine.verify(mockClaim, proof);
-    expect(result.verified).toBe(true);
-    expect(result.pqVerified).toBe(true);
-    expect(result.quantumResistant).toBe(true);
-  });
+      const proof: PqZkProof = {
+        claimId: 'claim-123-quantum',
+        proofData: validSnarkProofData,
+        publicSignals: ['18'],
+        pqSignature,
+        enclaveSignature: '0x' + 'a'.repeat(40),
+      };
 
-  it('should fail if PQ signature is invalid', async () => {
-    const pqSignature: PqSignature = {
-      algorithm: 'Dilithium5',
-      data: 'INVALID_SIG',
-      publicKey: 'valid-pubkey',
-    };
+      const result = await engine.verify(mockClaim, proof);
+      expect(result.verified).toBe(true);
+      expect(result.pqVerified).toBe(true);
+      expect(result.quantumResistant).toBe(true);
+      expect(result.error).toBeUndefined();
+    });
 
-    const proof: PqZkProof = {
-      claimId: 'claim-123',
-      proofData: validSnarkProofData,
-      publicSignals: ['18'],
-      pqSignature,
-      enclaveSignature: 'valid-signature',
-    };
+    it('rejects an invalid/tampered signature on a ZK proof', async () => {
+      const { publicKey, privateKey } = generateLamportKeyPair();
+      const signatureData = signLamport(validSnarkProofData, privateKey);
+      const tamperedSignature =
+        signatureData.slice(0, -1) + (signatureData.slice(-1) === '0' ? '1' : '0');
 
-    const result = await engine.verify(mockClaim, proof);
-    expect(result.verified).toBe(false);
-    expect(result.pqVerified).toBe(false);
-  });
+      const pqSignature: PqSignature = {
+        algorithm: 'SPHINCS+',
+        data: tamperedSignature,
+        publicKey: publicKey,
+      };
 
-  it('should fail if PQ signature data is missing', async () => {
-    const pqSignature: any = {
-      algorithm: 'Dilithium5',
-      publicKey: 'valid-pubkey',
-    };
+      const proof: PqZkProof = {
+        claimId: 'claim-123-quantum',
+        proofData: validSnarkProofData,
+        publicSignals: ['18'],
+        pqSignature,
+        enclaveSignature: '0x' + 'a'.repeat(40),
+      };
 
-    const proof: PqZkProof = {
-      claimId: 'claim-123',
-      proofData: validSnarkProofData,
-      publicSignals: ['18'],
-      pqSignature,
-      enclaveSignature: 'valid-signature',
-    };
+      const result = await engine.verify(mockClaim, proof);
+      expect(result.verified).toBe(false);
+      expect(result.pqVerified).toBe(false);
+      expect(result.quantumResistant).toBe(false);
+    });
 
-    const result = await engine.verify(mockClaim, proof);
-    expect(result.pqVerified).toBe(false);
-  });
+    it('rejects a signature if length constraints fail', async () => {
+      const pqSignature: PqSignature = {
+        algorithm: 'SPHINCS+',
+        data: 'a'.repeat(16383), // Invalid signature length
+        publicKey: 'b'.repeat(32768),
+      };
 
-  it('should verify a proof with PQ receipt', async () => {
-    const pqSignature: PqSignature = {
-      algorithm: 'Falcon-1024',
-      data: 'valid-signature',
-      publicKey: 'valid-pubkey',
-    };
+      const proof: PqZkProof = {
+        claimId: 'claim-123-quantum',
+        proofData: validSnarkProofData,
+        publicSignals: ['18'],
+        pqSignature,
+        enclaveSignature: '0x' + 'a'.repeat(40),
+      };
 
-    const receipt: PqReceipt = {
-      version: '2030.1',
-      timestamp: Date.now(),
-      claimId: 'claim-123',
-      zkProofHash: 'c1f64477c049ca1d3d1dfdde3731fd29af149d105a09fe9529ac44e58f8f9f37',
-      pqSignature,
-    };
-
-    const proof: PqZkProof = {
-      claimId: 'claim-123',
-      proofData: validSnarkProofData,
-      publicSignals: ['18'],
-      receipt,
-      enclaveSignature: 'valid-signature',
-    };
-
-    const result = await engine.verify(mockClaim, proof);
-    expect(result.verified).toBe(true);
-    expect(result.receiptVerified).toBe(true);
-  });
-
-  it('should verify a proof with PQ receipt version 2030.1.1', async () => {
-    // See [PostQuantumZkEngine.ts](file:///Users/sac/pcpapp/src/framework/2030/identity/PostQuantumZkEngine.ts) for details.
-    const pqSignature: PqSignature = {
-      algorithm: 'Falcon-1024',
-      data: 'valid-signature',
-      publicKey: 'valid-pubkey',
-    };
-
-    const receipt: PqReceipt = {
-      version: '2030.1.1',
-      timestamp: Date.now(),
-      claimId: 'claim-123',
-      zkProofHash: 'c1f64477c049ca1d3d1dfdde3731fd29af149d105a09fe9529ac44e58f8f9f37',
-      pqSignature,
-    };
-
-    const proof: PqZkProof = {
-      claimId: 'claim-123',
-      proofData: validSnarkProofData,
-      publicSignals: ['18'],
-      receipt,
-      enclaveSignature: 'valid-signature',
-    };
-
-    const result = await engine.verify(mockClaim, proof);
-    expect(result.verified).toBe(true);
-    expect(result.receiptVerified).toBe(true);
-  });
-
-  it('should fail if PQ receipt version is invalid', async () => {
-    const receipt: any = {
-      version: '2025.1',
-      pqSignature: {
-        algorithm: 'Dilithium2',
-        data: 'valid',
-        publicKey: 'valid',
-      },
-    };
-
-    const proof: PqZkProof = {
-      claimId: 'claim-123',
-      proofData: validSnarkProofData,
-      publicSignals: ['18'],
-      receipt,
-      enclaveSignature: 'valid-signature',
-    };
-
-    const result = await engine.verify(mockClaim, proof);
-    expect(result.receiptVerified).toBe(false);
-  });
-
-  it('should fail standard verification if claimId mismatch', async () => {
-    const proof: PqZkProof = {
-      claimId: 'wrong-claim',
-      proofData: validSnarkProofData,
-      publicSignals: ['18'],
-      enclaveSignature: 'valid-signature',
-    };
-
-    const result = await engine.verify(mockClaim, proof);
-    expect(result.verified).toBe(false);
-    expect(result.error).toBe('Proof claimId mismatch');
-  });
-
-  it('should fail if standard verification fails even if PQ signature is valid', async () => {
-    const pqSignature: PqSignature = {
-      algorithm: 'Dilithium5',
-      data: 'valid-signature',
-      publicKey: 'valid-pubkey',
-    };
-
-    const proof: PqZkProof = {
-      claimId: 'wrong-claim',
-      proofData: validSnarkProofData,
-      publicSignals: ['18'],
-      pqSignature,
-      enclaveSignature: 'valid-signature',
-    };
-
-    const result = await engine.verify(mockClaim, proof);
-    expect(result.verified).toBe(false);
-    expect(result.pqVerified).toBe(true);
-  });
-
-  it('should verify a proof with ONLY PQ receipt', async () => {
-    const pqSignature: PqSignature = {
-      algorithm: 'Falcon-1024',
-      data: 'valid-signature',
-      publicKey: 'valid-pubkey',
-    };
-
-    const receipt: PqReceipt = {
-      version: '2030.1',
-      timestamp: Date.now(),
-      claimId: 'claim-123',
-      zkProofHash: 'c1f64477c049ca1d3d1dfdde3731fd29af149d105a09fe9529ac44e58f8f9f37',
-      pqSignature,
-    };
-
-    const proof: PqZkProof = {
-      claimId: 'claim-123',
-      proofData: validSnarkProofData,
-      publicSignals: ['18'],
-      receipt,
-      enclaveSignature: 'valid-signature',
-    };
-
-    const result = await engine.verify(mockClaim, proof);
-    expect(result.verified).toBe(true);
-    expect(result.receiptVerified).toBe(true);
-    expect(result.quantumResistant).toBe(false); // Because pqSignature on proof is missing
-  });
-
-  it('should fail if PQ receipt signature is invalid', async () => {
-    const pqSignature: PqSignature = {
-      algorithm: 'Falcon-1024',
-      data: 'INVALID_SIG',
-      publicKey: 'valid-pubkey',
-    };
-
-    const receipt: PqReceipt = {
-      version: '2030.1',
-      timestamp: Date.now(),
-      claimId: 'claim-123',
-      zkProofHash: 'c1f64477c049ca1d3d1dfdde3731fd29af149d105a09fe9529ac44e58f8f9f37',
-      pqSignature,
-    };
-
-    const proof: PqZkProof = {
-      claimId: 'claim-123',
-      proofData: validSnarkProofData,
-      publicSignals: ['18'],
-      receipt,
-      enclaveSignature: 'valid-signature',
-    };
-
-    const result = await engine.verify(mockClaim, proof);
-    expect(result.receiptVerified).toBe(false);
-  });
-
-  it('should fail if PQ receipt has mismatched zkProofHash', async () => {
-    const pqSignature: PqSignature = {
-      algorithm: 'Falcon-1024',
-      data: 'valid-signature',
-      publicKey: 'valid-pubkey',
-    };
-
-    const receipt: PqReceipt = {
-      version: '2030.1',
-      timestamp: Date.now(),
-      claimId: 'claim-123',
-      zkProofHash: 'mismatched-hash-value',
-      pqSignature,
-    };
-
-    const proof: PqZkProof = {
-      claimId: 'claim-123',
-      proofData: 'mock-proof-data',
-      publicSignals: ['18'],
-      receipt,
-      enclaveSignature: 'valid-signature',
-    };
-
-    const result = await engine.verify(mockClaim, proof);
-    expect(result.receiptVerified).toBe(false);
+      const result = await engine.verify(mockClaim, proof);
+      expect(result.pqVerified).toBe(false);
+      expect(result.verified).toBe(false);
+    });
   });
 });

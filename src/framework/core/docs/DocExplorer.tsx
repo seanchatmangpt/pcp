@@ -14,6 +14,7 @@ export const DocExplorer: React.FC = () => {
   const theme = useTheme();
   const isDark = (theme as any).mode === 'dark';
   const [search, setSearch] = useState('');
+  const [searchFocused, setSearchFocused] = useState(false);
   const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
 
   const docs = docRegistry.getAllDocs();
@@ -39,16 +40,24 @@ export const DocExplorer: React.FC = () => {
       </Text>
 
       <TextInput
+        onFocus={() => setSearchFocused(true)}
+        onBlur={() => setSearchFocused(false)}
         className={cn(
-          'p-3 rounded-lg mb-4 border',
+          'p-3 rounded-lg mb-4 border transition-all duration-200',
           isDark
-            ? 'bg-slate-800 text-white border-slate-700'
-            : 'bg-white text-slate-900 border-slate-200'
+            ? 'bg-slate-800 text-white'
+            : 'bg-white text-slate-900',
+          searchFocused
+            ? 'border-blue-500 ring-2 ring-blue-500/20'
+            : isDark
+              ? 'border-slate-700'
+              : 'border-slate-200'
         )}
         placeholder="Search hooks, components, utilities..."
-        placeholderTextColor={isDark ? '#94a3b8' : '#64748b'}
+        placeholderTextColor={isDark ? '#94a3b8' : '#475569'}
         value={search}
         onChangeText={setSearch}
+        accessibilityLabel="Search input"
       />
 
       <View className="flex-1 flex-row">
@@ -68,7 +77,11 @@ export const DocExplorer: React.FC = () => {
                     : isDark
                       ? 'bg-slate-800'
                       : 'bg-slate-200'
-                )}>
+                )}
+                accessible={true}
+                accessibilityRole="button"
+                accessibilityLabel={`View documentation for ${doc.name}`}
+              >
                 <Text className={cn('font-medium', isDark ? 'text-white' : 'text-slate-900')}>
                   {doc.name}
                 </Text>
@@ -76,7 +89,8 @@ export const DocExplorer: React.FC = () => {
                   className={cn(
                     'text-xs mt-1 opacity-70',
                     isDark ? 'text-slate-300' : 'text-slate-600'
-                  )}>
+                  )}
+                >
                   {doc.type}
                 </Text>
               </TouchableOpacity>
@@ -129,20 +143,23 @@ const DocDetail: React.FC<{ doc: DocMetadata; isDark: boolean }> = ({ doc, isDar
           {doc.params.map((param, index) => (
             <View
               key={index}
-              className={cn('p-3 rounded-lg mb-2', isDark ? 'bg-slate-800' : 'bg-slate-100')}>
+              className={cn('p-3 rounded-lg mb-2', isDark ? 'bg-slate-800' : 'bg-slate-100')}
+            >
               <View className="flex-row items-center mb-1">
                 <Text
                   className={cn(
                     'font-mono font-bold mr-2',
                     isDark ? 'text-blue-400' : 'text-blue-600'
-                  )}>
+                  )}
+                >
                   {param.name}
                 </Text>
                 <Text
                   className={cn(
                     'text-xs font-mono opacity-60',
                     isDark ? 'text-slate-400' : 'text-slate-500'
-                  )}>
+                  )}
+                >
                   {param.type}
                 </Text>
               </View>
@@ -161,10 +178,8 @@ const DocDetail: React.FC<{ doc: DocMetadata; isDark: boolean }> = ({ doc, isDar
           </Text>
           <View className={cn('p-3 rounded-lg', isDark ? 'bg-slate-800' : 'bg-slate-100')}>
             <Text
-              className={cn(
-                'font-mono text-sm mb-1',
-                isDark ? 'text-green-400' : 'text-green-600'
-              )}>
+              className={cn('font-mono text-sm mb-1', isDark ? 'text-green-400' : 'text-green-600')}
+            >
               {doc.returns.type}
             </Text>
             <Text className={isDark ? 'text-slate-300' : 'text-slate-600'}>
@@ -194,7 +209,8 @@ const DocDetail: React.FC<{ doc: DocMetadata; isDark: boolean }> = ({ doc, isDar
 
       {doc.sourcePath && (
         <Text
-          className={cn('text-xs opacity-50 mt-10', isDark ? 'text-slate-500' : 'text-slate-400')}>
+          className={cn('text-xs opacity-50 mt-10', isDark ? 'text-slate-500' : 'text-slate-400')}
+        >
           Source: {doc.sourcePath}
         </Text>
       )}

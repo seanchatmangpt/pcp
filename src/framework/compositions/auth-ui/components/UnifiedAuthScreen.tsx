@@ -35,7 +35,8 @@ export const UnifiedAuthScreen: React.FC = () => {
         onPress={() => verify()}
         isLoading={isMfaLoading}
         variant="secondary"
-        style={styles.button}>
+        style={styles.button}
+      >
         Enter MFA Code
       </Button>
     </Animated.View>

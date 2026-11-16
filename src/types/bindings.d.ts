@@ -303,3 +303,107 @@ export type PredicateTs = { kind: PredicateKindTs }
 export type OcpqQueryTs = { scope: ObjectScopeTs; predicates: PredicateTs[]; sub_queries: OcpqQueryTs[] }
 
 export type OcpqRefusalTs = "MissingObjectScope" | "UnknownObjectType" | "UnknownEventType" | "InvalidCardinality" | "UnsafeProjection" | "FlatteningRequired" | "InvalidChildSetBound" | "EmptyScopeType" | "ConflictingPredicateKinds" | "UnboundVariable"
+
+/**
+ * TypeScript projection for ProcessModel representation (Discovery).
+ */
+export type ProcessModelTs = {
+  id: string;
+  name: string;
+  petriNet?: PetriNetTs;
+  bpmnProcess?: BpmnProcessTs;
+  discoveredAt: string;
+}
+
+/**
+ * Configuration parameters for the Inductive Miner discovery algorithm.
+ */
+export type InductiveMinerParams = {
+  noiseThreshold: number;
+  classifyByActivity: boolean;
+  fallthroughToFlowers: boolean;
+}
+
+/**
+ * Typestate for the discovery lifecycle.
+ */
+export type DiscoveryStatus = "Idle" | "ExtractingLog" | "MiningModel" | "Completed" | "Failed"
+
+/**
+ * Performance metric container for process activities/flows.
+ */
+export type PerformanceMetricTs = {
+  activity: string;
+  cycleTimeMs: number;
+  leadTimeMs: number;
+  idleTimeMs: number;
+}
+
+/**
+ * Service Level Agreement definition for performance thresholds.
+ */
+export type ServiceLevelAgreementTs = {
+  id: string;
+  activity: string;
+  maxCycleTimeMs: number;
+  severity: "Info" | "Warning" | "Critical";
+}
+
+/**
+ * Indicators for process congestion and performance bottlenecks.
+ */
+export type BottleneckIndicator = {
+  activity: string;
+  queueSize: number;
+  congestionFactor: number;
+  isCritical: boolean;
+}
+
+/**
+ * Profiles for process participants (Actors/Resources).
+ */
+export type ResourceTs = {
+  id: string;
+  name: string;
+  role: string;
+  efficiencyRating: number;
+}
+
+/**
+ * Mapping of resources to roles and teams.
+ */
+export type OrganizationalUnitTs = {
+  id: string;
+  name: string;
+  resourceIds: string[];
+}
+
+/**
+ * Transitions/handovers of work between different resources.
+ */
+export type HandoverLinkTs = {
+  fromResourceId: string;
+  toResourceId: string;
+  handoverCount: number;
+  averageDelayMs: number;
+}
+
+/**
+ * Formal definitions for P-value and Jaccard drift (Concept Drift).
+ */
+export type ConceptDriftMetric = {
+  pValue: number;
+  jaccardDistance: number;
+  driftDetected: boolean;
+  detectedAt: string;
+}
+
+/**
+ * Prediction results for next-step or remaining-time forecasts.
+ */
+export type PredictionResultTs = {
+  caseId: string;
+  predictedNextActivity: string;
+  confidence: number;
+  remainingTimeEstimateMs: number;
+}

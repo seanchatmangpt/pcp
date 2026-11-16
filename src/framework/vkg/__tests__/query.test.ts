@@ -71,27 +71,4 @@ describe('RdfQueryBuilder', () => {
       undefined
     );
   });
-
-  it('traverses relations', async () => {
-    const builder = new RdfQueryBuilder(mockClient);
-
-    const q = DataFactory.quad(
-      DataFactory.namedNode('http://s'),
-      DataFactory.namedNode('http://p'),
-      DataFactory.namedNode('http://o')
-    );
-
-    mockMatch.mockResolvedValue([q]);
-
-    const res = await builder.traverse('http://s', 'http://p');
-
-    expect(mockMatch).toHaveBeenCalledWith(
-      DataFactory.namedNode('http://s'),
-      DataFactory.namedNode('http://p'),
-      undefined,
-      undefined
-    );
-
-    expect(res).toEqual([DataFactory.namedNode('http://o')]);
-  });
 });

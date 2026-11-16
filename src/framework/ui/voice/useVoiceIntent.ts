@@ -24,26 +24,36 @@ export const useVoiceIntent = (options: UseVoiceIntentOptions = {}): UseVoiceInt
   const {
     registerIntents: ctxRegister,
     unregisterIntents: ctxUnregister,
-    activeIntents,
+    getActiveIntents,
     isListening,
     setIsListening,
   } = useVoiceContext();
   const [isProcessing, setIsProcessing] = useState(false);
-  const registeredIds = useRef<string[]>([]);
+  const registeredIds = useRef<Set<string>>(new Set());
+
+  const optionsRef = useRef(options);
+  useEffect(() => {
+    optionsRef.current = options;
+  }, [options]);
 
   const registerIntents = useCallback(
     (intents: VoiceIntent[]) => {
-      const ids = intents.map((i) => i.id);
-      registeredIds.current = [...registeredIds.current, ...ids];
-      ctxRegister(intents);
+      const newIntents = intents.filter((i) => !registeredIds.current.has(i.id));
+      if (newIntents.length > 0) {
+        newIntents.forEach((i) => registeredIds.current.add(i.id));
+        ctxRegister(newIntents);
+      }
     },
     [ctxRegister]
   );
 
   const unregisterIntents = useCallback(
     (intentIds: string[]) => {
-      registeredIds.current = registeredIds.current.filter((id) => !intentIds.includes(id));
-      ctxUnregister(intentIds);
+      const toRemove = intentIds.filter((id) => registeredIds.current.has(id));
+      if (toRemove.length > 0) {
+        toRemove.forEach((id) => registeredIds.current.delete(id));
+        ctxUnregister(toRemove);
+      }
     },
     [ctxUnregister]
   );
@@ -51,8 +61,10 @@ export const useVoiceIntent = (options: UseVoiceIntentOptions = {}): UseVoiceInt
   // Clean up registered intents on unmount
   useEffect(() => {
     return () => {
-      if (registeredIds.current.length > 0) {
-        ctxUnregister(registeredIds.current);
+      const activeIds = Array.from(registeredIds.current);
+      if (activeIds.length > 0) {
+        ctxUnregister(activeIds);
+        registeredIds.current.clear();
       }
     };
   }, [ctxUnregister]);
@@ -68,7 +80,7 @@ export const useVoiceIntent = (options: UseVoiceIntentOptions = {}): UseVoiceInt
       let bestMatch: VoiceIntent | null = null;
       let highestPriority = -1;
 
-      for (const intent of activeIntents) {
+      for (const intent of getActiveIntents()) {
         const isMatch = intent.commands.some((cmd) => {
           const normalizedCmd = cmd.toLowerCase().trim();
           // Exact match or contains (basic fuzzy)
@@ -86,7 +98,7 @@ export const useVoiceIntent = (options: UseVoiceIntentOptions = {}): UseVoiceInt
 
       return bestMatch;
     },
-    [activeIntents]
+    [getActiveIntents]
   );
 
   const triggerIntent = useCallback(
@@ -96,17 +108,17 @@ export const useVoiceIntent = (options: UseVoiceIntentOptions = {}): UseVoiceInt
         const intent = findMatchingIntent(command);
         if (intent) {
           await intent.action();
-          options.onIntentRecognized?.(intent);
+          optionsRef.current.onIntentRecognized?.(intent);
           return true;
         } else {
-          options.onUnknownCommand?.(command);
+          optionsRef.current.onUnknownCommand?.(command);
           return false;
         }
       } finally {
         setIsProcessing(false);
       }
     },
-    [findMatchingIntent, options]
+    [findMatchingIntent]
   );
 
   const startListening = useCallback(async () => {

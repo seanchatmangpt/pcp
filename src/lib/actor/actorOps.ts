@@ -29,9 +29,8 @@ const proxyGlobalState = ProxyableBridge.wrap(globalStateTarget, globalStateMemb
       useActorOpsStore.setState({ remoteRejectActive: value });
     } else if (prop === 'currentPrincipal') {
       useActorOpsStore.setState({ currentPrincipal: value });
-    }
+    } else if (prop === 'packetDropRate') {
     /* istanbul ignore next */
-    else if (prop === 'packetDropRate') {
       useActorOpsStore.setState({ packetDropRate: value });
     }
   },
@@ -72,8 +71,15 @@ export function setPacketDropRate(val: number) {
 // Global Singletons
 export const globalVkgClient = new VirtualKnowledgeGraphClient();
 export const globalSyncEngine = new ActorSyncEngine();
-export const globalLocalDispatcher = new ActorDispatcher(globalVkgClient, { mode: 'local', authority: 'optimistic' }, globalSyncEngine);
-export const globalRemoteDispatcher = new ActorDispatcher(globalVkgClient, { mode: 'remote', authority: 'authoritative' });
+export const globalLocalDispatcher = new ActorDispatcher(
+  globalVkgClient,
+  { mode: 'local', authority: 'optimistic' },
+  globalSyncEngine
+);
+export const globalRemoteDispatcher = new ActorDispatcher(globalVkgClient, {
+  mode: 'remote',
+  authority: 'authoritative',
+});
 
 interface ActorOpsState {
   networkOnline: boolean;

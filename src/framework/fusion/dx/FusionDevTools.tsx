@@ -30,7 +30,8 @@ export const FusionDevTools: React.FC = () => {
         style={styles.fab}
         onPress={() => setIsOpen(true)}
         testID="fusion-devtools-fab"
-        activeOpacity={0.7}>
+        activeOpacity={0.7}
+      >
         <MaterialCommunityIcons name="fountain-pen-tip" size={24} color="white" />
       </TouchableOpacity>
 
@@ -38,7 +39,8 @@ export const FusionDevTools: React.FC = () => {
         visible={isOpen}
         animationType="slide"
         onRequestClose={() => setIsOpen(false)}
-        testID="fusion-devtools-modal">
+        testID="fusion-devtools-modal"
+      >
         <SafeAreaView style={styles.modalContainer}>
           <View style={styles.header}>
             <View>
@@ -48,7 +50,8 @@ export const FusionDevTools: React.FC = () => {
             <TouchableOpacity
               onPress={() => setIsOpen(false)}
               testID="close-devtools"
-              style={styles.closeButton}>
+              style={styles.closeButton}
+            >
               <MaterialCommunityIcons name="close" size={24} color="#64748b" />
             </TouchableOpacity>
           </View>
@@ -57,7 +60,8 @@ export const FusionDevTools: React.FC = () => {
             <TouchableOpacity
               style={[styles.tab, activeTab === 'docs' && styles.activeTab]}
               onPress={() => setActiveTab('docs')}
-              testID="tab-docs">
+              testID="tab-docs"
+            >
               <MaterialCommunityIcons
                 name="book-open-variant"
                 size={18}
@@ -70,7 +74,8 @@ export const FusionDevTools: React.FC = () => {
             <TouchableOpacity
               style={[styles.tab, activeTab === 'scaffold' && styles.activeTab]}
               onPress={() => setActiveTab('scaffold')}
-              testID="tab-scaffold">
+              testID="tab-scaffold"
+            >
               <MaterialCommunityIcons
                 name="auto-fix"
                 size={18}
@@ -123,7 +128,8 @@ const ScaffoldView = () => {
             style={[styles.scaffoldButton, scaffolding === id && styles.scaffoldButtonDisabled]}
             onPress={() => handleScaffold(id, blueprint.name)}
             disabled={scaffolding !== null}
-            testID={`scaffold-btn-${id}`}>
+            testID={`scaffold-btn-${id}`}
+          >
             <Text style={styles.scaffoldButtonText}>
               {scaffolding === id ? 'Generative...' : 'Scaffold'}
             </Text>

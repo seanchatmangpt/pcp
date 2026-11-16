@@ -54,7 +54,9 @@ export class MeshSyncEngineImpl implements MeshSyncEngine {
             senderId: this.adapter.getLocalPeerId(),
             payload: { id, delta },
             timestamp: Date.now(),
-          });
+            // Mock identity proof for Sybil resistance as the type doesn't support it yet
+            proof: `authv2:${this.adapter.getLocalPeerId()}:${Date.now()}`,
+          } as any);
           (crdt as DeltaCRDT<any, any>).resetDelta();
         }
       } else {
@@ -63,16 +65,25 @@ export class MeshSyncEngineImpl implements MeshSyncEngine {
           senderId: this.adapter.getLocalPeerId(),
           payload: { id, state: crdt.toJSON() },
           timestamp: Date.now(),
-        });
+          // Mock identity proof for Sybil resistance as the type doesn't support it yet
+          proof: `authv2:${this.adapter.getLocalPeerId()}:${Date.now()}`,
+        } as any);
       }
     }
   }
 
   private handleIncomingMessage(message: MeshMessage) {
     const { type, payload, senderId, timestamp } = message;
+    const proof = (message as any).proof;
 
     // Don't process our own messages
     if (senderId === this.adapter.getLocalPeerId()) return;
+
+    // Sybil Resistance: Require strict identity proof/signature
+    if (!proof) {
+      console.warn(`[MeshSyncEngine] Rejecting unauthenticated message from ${senderId}`);
+      return;
+    }
 
     if (type === 'sync_state' || type === 'sync_delta') {
       // Iron Law Constraint: Split-Brain / Causal Window check

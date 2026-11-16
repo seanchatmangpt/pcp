@@ -20,7 +20,7 @@ export class ReplayEvaluator {
 
     return {
       finalState: state,
-      canonicalHash
+      canonicalHash,
     };
   }
 }

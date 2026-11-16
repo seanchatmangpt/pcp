@@ -3,14 +3,20 @@
  */
 
 import { db } from '../db/db';
-import { actorCommands, actorEvents, actorReceipts, actorOutbox, actorQuarantine } from '../db/schema';
+import {
+  actorCommands,
+  actorEvents,
+  actorReceipts,
+  actorOutbox,
+  actorQuarantine,
+} from '../db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { generateReceiptHash } from '../crypto/receipts';
 import { VirtualKnowledgeGraphClient } from '../vkg/client';
 import { ActorRegistry } from './registry';
 import { ActorSupervisor } from './supervision';
+import { SyncEngine } from '../sync/syncEngine';
 import { supabase } from '@/lib/supabase';
-type SyncEngine = any;
 import { DataFactory, Quad } from '../vkg/rdf';
 import {
   CommandEnvelope,
@@ -19,7 +25,7 @@ import {
   ActorRef,
   Principal,
   DispatchContext,
-  ReceiptStatus
+  ReceiptStatus,
 } from './types';
 
 /**
@@ -43,9 +49,10 @@ function serializeQuad(q: Quad): any {
  * Deserializes a plain JSON-compatible object back into a standard RDF.js Quad object.
  */
 function deserializeQuad(sq: any): Quad {
-  const s = sq.subject.termType === 'NamedNode'
-    ? DataFactory.namedNode(sq.subject.value)
-    : DataFactory.blankNode(sq.subject.value);
+  const s =
+    sq.subject.termType === 'NamedNode'
+      ? DataFactory.namedNode(sq.subject.value)
+      : DataFactory.blankNode(sq.subject.value);
 
   const p = DataFactory.namedNode(sq.predicate.value);
 
@@ -59,11 +66,12 @@ function deserializeQuad(sq: any): Quad {
     o = DataFactory.literal(sq.object.value, sq.object.language || datatype);
   }
 
-  const g = sq.graph.termType === 'DefaultGraph'
-    ? DataFactory.defaultGraph()
-    : sq.graph.termType === 'NamedNode'
-    ? DataFactory.namedNode(sq.graph.value)
-    : DataFactory.blankNode(sq.graph.value);
+  const g =
+    sq.graph.termType === 'DefaultGraph'
+      ? DataFactory.defaultGraph()
+      : sq.graph.termType === 'NamedNode'
+        ? DataFactory.namedNode(sq.graph.value)
+        : DataFactory.blankNode(sq.graph.value);
 
   return DataFactory.quad(s, p, o, g);
 }
@@ -72,60 +80,57 @@ function deserializeQuad(sq: any): Quad {
  * Concrete SyncEngine subclass for Actor events, commands, and receipts.
  * Synchronizes actor logs up to Supabase.
  */
-export class ActorSyncEngine implements SyncEngine {
-  protected supportedJobTypes = ['ACTOR_COMMAND', 'ACTOR_EVENT', 'ACTOR_RECEIPT'];
-  public async queueJob(job: any): Promise<void> {}
+export class ActorSyncEngine extends SyncEngine {
+  protected override supportedJobTypes = ['ACTOR_COMMAND', 'ACTOR_EVENT', 'ACTOR_RECEIPT'];
 
-  protected async dispatchJob(job: { jobType: string; payload: string; entityId: string | null }): Promise<void> {
+  protected async dispatchJob(job: {
+    jobType: string;
+    payload: string;
+    entityId: string | null;
+  }): Promise<void> {
     const rawData = JSON.parse(job.payload);
 
     if (job.jobType === 'ACTOR_COMMAND') {
-      const { error } = await supabase
-        .from('actor_commands')
-        .upsert({
-          id: rawData.id,
-          actor_ref: rawData.actor,
-          command: rawData.command,
-          principal: rawData.principal,
-          payload: rawData.payload,
-          idempotency_key: rawData.idempotencyKey,
-          causation_id: rawData.causationId ?? null,
-          correlation_id: rawData.correlationId ?? null,
-          status: rawData.status,
-          created_at: rawData.createdAt,
-        });
+      const { error } = await supabase.from('actor_commands').upsert({
+        id: rawData.id,
+        actor_ref: rawData.actor,
+        command: rawData.command,
+        principal: rawData.principal,
+        payload: rawData.payload,
+        idempotency_key: rawData.idempotencyKey,
+        causation_id: rawData.causationId ?? null,
+        correlation_id: rawData.correlationId ?? null,
+        status: rawData.status,
+        created_at: rawData.createdAt,
+      });
 
       if (error) {
         throw new Error(`Supabase actor command sync failed: ${error.message}`);
       }
     } else if (job.jobType === 'ACTOR_EVENT') {
-      const { error } = await supabase
-        .from('actor_events')
-        .upsert({
-          id: rawData.id,
-          command_id: rawData.commandId,
-          actor_ref: rawData.actor,
-          type: rawData.type,
-          payload: rawData.payload,
-          created_at: rawData.createdAt,
-        });
+      const { error } = await supabase.from('actor_events').upsert({
+        id: rawData.id,
+        command_id: rawData.commandId,
+        actor_ref: rawData.actor,
+        type: rawData.type,
+        payload: rawData.payload,
+        created_at: rawData.createdAt,
+      });
 
       if (error) {
         throw new Error(`Supabase actor event sync failed: ${error.message}`);
       }
     } else if (job.jobType === 'ACTOR_RECEIPT') {
-      const { error } = await supabase
-        .from('actor_receipts')
-        .upsert({
-          id: rawData.id,
-          command_id: rawData.commandId,
-          actor_ref: rawData.actor,
-          status: rawData.status,
-          delta_hash: rawData.deltaHash ?? null,
-          event_ids: rawData.eventIds,
-          error: rawData.error ?? null,
-          created_at: rawData.createdAt,
-        });
+      const { error } = await supabase.from('actor_receipts').upsert({
+        id: rawData.id,
+        command_id: rawData.commandId,
+        actor_ref: rawData.actor,
+        status: rawData.status,
+        delta_hash: rawData.deltaHash ?? null,
+        event_ids: rawData.eventIds,
+        error: rawData.error ?? null,
+        created_at: rawData.createdAt,
+      });
 
       if (error) {
         throw new Error(`Supabase actor receipt sync failed: ${error.message}`);
@@ -175,7 +180,10 @@ export class ActorDispatcher {
     if (existingReceipts.length > 0) {
       const rec = existingReceipts[0];
       // In remote mode, ignore optimistic local pending/rejection receipts
-      if (this.context.mode === 'local' || (rec.status !== 'accepted_pending' && rec.status !== 'rejected_local')) {
+      if (
+        this.context.mode === 'local' ||
+        (rec.status !== 'accepted_pending' && rec.status !== 'rejected_local')
+      ) {
         return {
           id: rec.id,
           commandId: rec.commandId,
@@ -199,7 +207,9 @@ export class ActorDispatcher {
   /**
    * Local Simulation Mode: simulate, apply to local VKG, and queue to outbox.
    */
-  private async dispatchLocal<TPayload = any>(envelope: CommandEnvelope<TPayload>): Promise<Receipt> {
+  private async dispatchLocal<TPayload = any>(
+    envelope: CommandEnvelope<TPayload>
+  ): Promise<Receipt> {
     // 1. Log command locally in pending status
     await db.insert(actorCommands).values({
       id: envelope.id,
@@ -378,7 +388,9 @@ export class ActorDispatcher {
   /**
    * Remote Authoritative Mode: validate, compile construct delta, and finalise receipt.
    */
-  private async dispatchRemote<TPayload = any>(envelope: CommandEnvelope<TPayload>): Promise<Receipt> {
+  private async dispatchRemote<TPayload = any>(
+    envelope: CommandEnvelope<TPayload>
+  ): Promise<Receipt> {
     try {
       const { isRemoteRejectionMocked } = require('./actorOps');
       if (isRemoteRejectionMocked()) {
@@ -450,8 +462,16 @@ export class ActorDispatcher {
 
     // Compute Delta Hash
     const rawDeltaStr = JSON.stringify(
-      delta.add.map((q) => [q.subject.value, q.predicate.value, q.object.value, q.graph.value])
-        .concat(delta.remove.map((q) => [q.subject.value, q.predicate.value, q.object.value, q.graph.value]))
+      delta.add
+        .map((q) => [q.subject.value, q.predicate.value, q.object.value, q.graph.value])
+        .concat(
+          delta.remove.map((q) => [
+            q.subject.value,
+            q.predicate.value,
+            q.object.value,
+            q.graph.value,
+          ])
+        )
     );
     let hashVal = 0;
     for (let i = 0; i < rawDeltaStr.length; i++) {
@@ -483,13 +503,10 @@ export class ActorDispatcher {
       offline = isNetworkOffline();
     } catch (e) {}
     if (offline) {
-      throw new Error("NetworkError: Device is offline");
+      throw new Error('NetworkError: Device is offline');
     }
 
-    const jobs = await db
-      .select()
-      .from(actorOutbox)
-      .where(eq(actorOutbox.status, 'pending'));
+    const jobs = await db.select().from(actorOutbox).where(eq(actorOutbox.status, 'pending'));
 
     for (const job of jobs) {
       // Mark as processing
@@ -553,7 +570,7 @@ export class ActorDispatcher {
                 await this.vkgClient.addQuads(removeQuads);
               }
             } catch (e: any) {
-              console.error("ROLLBACK EXCEPTION:", e);
+              console.error('ROLLBACK EXCEPTION:', e);
             }
           }
 
@@ -592,18 +609,12 @@ export class ActorDispatcher {
           } catch (e) {}
 
           // Mark job as failed
-          await db
-            .update(actorOutbox)
-            .set({ status: 'failed' })
-            .where(eq(actorOutbox.id, job.id));
+          await db.update(actorOutbox).set({ status: 'failed' }).where(eq(actorOutbox.id, job.id));
         }
       } catch (error: any) {
         // Retry logic: mark job back as pending if within retry limit
         const status = job.attempts >= 3 ? 'failed' : 'pending';
-        await db
-          .update(actorOutbox)
-          .set({ status })
-          .where(eq(actorOutbox.id, job.id));
+        await db.update(actorOutbox).set({ status }).where(eq(actorOutbox.id, job.id));
       }
     }
   }
@@ -644,7 +655,8 @@ export class ActorDispatcher {
     } catch (e) {}
 
     // Update command status locally
-    await db.update(actorCommands)
+    await db
+      .update(actorCommands)
       .set({ status: 'rejected' })
       .where(eq(actorCommands.id, envelope.id));
 

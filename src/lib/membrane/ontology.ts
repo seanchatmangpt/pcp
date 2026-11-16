@@ -11,14 +11,14 @@ export class Ontology {
     'http://www.w3.org/ns/prov',
     'http://www.w3.org/ns/odrl',
     'http://www.w3.org/ns/activitystreams',
-    'urn:zoe:'
+    'urn:zoe:',
   ];
 
   /**
    * Check if a predicate URI starts with an approved public vocabulary prefix
    */
   static isPredicateValid(predicate: string): boolean {
-    return this.publicVocabularies.some(vocab => predicate.startsWith(vocab));
+    return this.publicVocabularies.some((vocab) => predicate.startsWith(vocab));
   }
 
   /**
@@ -34,7 +34,7 @@ export class Ontology {
       if (!v2[v2Key] || v2[v2Key] !== v1[key]) {
         return {
           stable: false,
-          driftDetails: `Missing or drifted predicate mapping for key '${key}'. Expected equivalent value '${v1[key]}'.`
+          driftDetails: `Missing or drifted predicate mapping for key '${key}'. Expected equivalent value '${v1[key]}'.`,
         };
       }
     }

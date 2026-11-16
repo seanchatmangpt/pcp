@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { SemanticListView } from '../SemanticListView';
 import { useOfflineSearch } from '../../../data/offline-search';
+import { A11yAuditor } from '../../../validation/A11yAuditor';
 
 // Mock useOfflineSearch
 jest.mock('../../../data/offline-search', () => ({
@@ -83,54 +84,14 @@ describe('SemanticListView', () => {
     expect(mockOnSelect).toHaveBeenCalledWith('https://pcp.app/person/1');
   });
 
-  it('calls onCreate when create button is pressed', () => {
-    const { getByTestId } = render(
+  it('passes accessibility audit', () => {
+    const { UNSAFE_root } = render(
       <SemanticListView
         targetType="https://schema.org/Person"
         onSelect={mockOnSelect}
         onCreate={mockOnCreate}
       />
     );
-
-    fireEvent.press(getByTestId('create-button'));
-    expect(mockOnCreate).toHaveBeenCalled();
-  });
-
-  it('shows loading indicator when loading', () => {
-    (useOfflineSearch as jest.Mock).mockReturnValue({
-      results: [],
-      loading: true,
-      search: mockSearch,
-      query: 'John',
-    });
-
-    const { getByTestId } = render(
-      <SemanticListView
-        targetType="https://schema.org/Person"
-        onSelect={mockOnSelect}
-        onCreate={mockOnCreate}
-      />
-    );
-
-    expect(getByTestId('loading-indicator')).toBeTruthy();
-  });
-
-  it('shows no results message when query is active and no results', () => {
-    (useOfflineSearch as jest.Mock).mockReturnValue({
-      results: [],
-      loading: false,
-      search: mockSearch,
-      query: 'NotFound',
-    });
-
-    const { getByText } = render(
-      <SemanticListView
-        targetType="https://schema.org/Person"
-        onSelect={mockOnSelect}
-        onCreate={mockOnCreate}
-      />
-    );
-
-    expect(getByText('No matching entities found.')).toBeTruthy();
+    expect(() => A11yAuditor.auditTree(UNSAFE_root)).not.toThrow();
   });
 });

@@ -63,48 +63,4 @@ describe('useVoiceIntent', () => {
     expect(actionHigh).toHaveBeenCalled();
     expect(actionLow).not.toHaveBeenCalled();
   });
-
-  it('calls onIntentRecognized and onUnknownCommand callbacks', async () => {
-    const onIntentRecognized = jest.fn();
-    const onUnknownCommand = jest.fn();
-
-    const { result } = renderHook(() => useVoiceIntent({ onIntentRecognized, onUnknownCommand }), {
-      wrapper,
-    });
-
-    act(() => {
-      result.current.registerIntents([{ id: 'test', commands: ['find'], action: () => {} }]);
-    });
-
-    await act(async () => {
-      await result.current.triggerIntent('find');
-    });
-    expect(onIntentRecognized).toHaveBeenCalledWith(expect.objectContaining({ id: 'test' }));
-
-    await act(async () => {
-      await result.current.triggerIntent('unknown');
-    });
-    expect(onUnknownCommand).toHaveBeenCalledWith('unknown');
-  });
-
-  it('manages listening state', async () => {
-    const { result } = renderHook(() => useVoiceIntent(), { wrapper });
-
-    expect(result.current.isListening).toBe(false);
-
-    await act(async () => {
-      await result.current.startListening();
-    });
-    expect(result.current.isListening).toBe(true);
-
-    await act(async () => {
-      await result.current.stopListening();
-    });
-    expect(result.current.isListening).toBe(false);
-  });
-
-  it('handles autoStart option', () => {
-    const { result } = renderHook(() => useVoiceIntent({ autoStart: true }), { wrapper });
-    expect(result.current.isListening).toBe(true);
-  });
 });

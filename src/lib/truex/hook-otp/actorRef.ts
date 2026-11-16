@@ -31,7 +31,7 @@ export function sha256(ascii: string): string {
   function rightRotate(value: number, amount: number) {
     return (value >>> amount) | (value << (32 - amount));
   }
-  
+
   const mathPow = Math.pow;
   const maxWord = mathPow(2, 32);
   const lengthProperty = 'length';
@@ -77,23 +77,30 @@ export function sha256(ascii: string): string {
     words[i >> 2] |= charCode << (24 - (i % 4) * 8);
   }
 
-  words[words[lengthProperty]] = ((asciiBitLength / maxWord) | 0);
-  words[words[lengthProperty]] = (asciiBitLength | 0);
+  words[words[lengthProperty]] = (asciiBitLength / maxWord) | 0;
+  words[words[lengthProperty]] = asciiBitLength | 0;
 
   for (j = 0; j < words[lengthProperty]; ) {
     const w = words.slice(j, (j += 16));
     const oldHash = hash.slice(0);
 
     for (i = 0; i < 64; i++) {
-      const w15 = w[i - 15], w2 = w[i - 2];
+      const w15 = w[i - 15],
+        w2 = w[i - 2];
       const s0 = rightRotate(w15, 7) ^ rightRotate(w15, 18) ^ (w15 >>> 3);
       const s1 = rightRotate(w2, 17) ^ rightRotate(w2, 19) ^ (w2 >>> 10);
-      
+
       const ch = (hash[4] & hash[5]) ^ (~hash[4] & hash[6]);
       const maj = (hash[0] & hash[1]) ^ (hash[0] & hash[2]) ^ (hash[1] & hash[2]);
 
-      const temp1 = hash[7] + (rightRotate(hash[4], 6) ^ rightRotate(hash[4], 11) ^ rightRotate(hash[4], 25)) + ch + k[i] + (w[i] = (i < 16 ? w[i] : (w[i - 16] + s0 + w[i - 7] + s1) | 0));
-      const temp2 = (rightRotate(hash[0], 2) ^ rightRotate(hash[0], 13) ^ rightRotate(hash[0], 22)) + maj;
+      const temp1 =
+        hash[7] +
+        (rightRotate(hash[4], 6) ^ rightRotate(hash[4], 11) ^ rightRotate(hash[4], 25)) +
+        ch +
+        k[i] +
+        (w[i] = i < 16 ? w[i] : (w[i - 16] + s0 + w[i - 7] + s1) | 0);
+      const temp2 =
+        (rightRotate(hash[0], 2) ^ rightRotate(hash[0], 13) ^ rightRotate(hash[0], 22)) + maj;
 
       hash[7] = hash[6];
       hash[6] = hash[5];

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -33,17 +33,28 @@ export const SemanticListView: React.FC<SemanticListViewProps> = ({
   // Extract a readable label for the type
   const typeLabel = targetType.split(/[/#]/).pop() || targetType;
 
+  const [searchFocused, setSearchFocused] = useState(false);
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <TextInput
-          style={styles.searchInput}
+          style={[styles.searchInput, searchFocused && styles.searchInputFocused]}
+          onFocus={() => setSearchFocused(true)}
+          onBlur={() => setSearchFocused(false)}
           placeholder={`Search ${typeLabel}s...`}
           value={query}
           onChangeText={search}
           testID="search-input"
+          accessibilityLabel="Search input"
         />
-        <TouchableOpacity style={styles.createButton} onPress={onCreate} testID="create-button">
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel={`Create new ${typeLabel}`}
+          style={styles.createButton}
+          onPress={onCreate}
+          testID="create-button"
+        >
           <Text style={styles.createButtonText}>+</Text>
         </TouchableOpacity>
       </View>
@@ -61,7 +72,11 @@ export const SemanticListView: React.FC<SemanticListViewProps> = ({
           <TouchableOpacity
             style={styles.item}
             onPress={() => onSelect(item.subject)}
-            testID={`item-${item.subject}`}>
+            testID={`item-${item.subject}`}
+            accessible={true}
+            accessibilityRole="button"
+            accessibilityLabel={`Select ${item.subject.split(/[/#]/).pop() || item.subject}`}
+          >
             <View>
               <Text style={styles.itemSubject}>
                 {item.subject.split(/[/#]/).pop() || item.subject}
@@ -113,9 +128,9 @@ const styles = StyleSheet.create({
   },
   createButton: {
     backgroundColor: '#007AFF',
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 2,
@@ -123,6 +138,14 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
+  },
+  searchInputFocused: {
+    borderColor: '#007AFF',
+    shadowColor: '#007AFF',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 3,
   },
   createButtonText: {
     color: '#fff',

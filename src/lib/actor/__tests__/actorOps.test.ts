@@ -17,10 +17,12 @@ import {
   globalRemoteDispatcher,
 } from '../actorOps';
 import { Principal } from '../types';
+import { Interceptors } from '../../membrane/interceptors';
 
 describe('actorOps', () => {
   beforeEach(() => {
     // Reset state before each test
+    Interceptors.clear();
     setNetworkOffline(false);
     setRemoteRejectionMocked(false);
     setCurrentPrincipal({ id: 'usr-admin', role: 'admin' });

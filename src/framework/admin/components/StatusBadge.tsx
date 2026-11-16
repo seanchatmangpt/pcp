@@ -59,7 +59,8 @@ export function StatusBadge({ status, variant, testID }: StatusBadgeProps) {
       style={[styles.badge, { backgroundColor }]}
       testID={testID}
       accessible={true}
-      accessibilityLabel={`Status: ${safeStatus.replace('_', ' ')}`}>
+      accessibilityLabel={`Status: ${safeStatus.replace('_', ' ')}`}
+    >
       <Text style={[styles.text, { color: textColor }]}>{safeStatus.replace('_', ' ')}</Text>
     </View>
   );

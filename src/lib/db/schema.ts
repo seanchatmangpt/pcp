@@ -18,6 +18,53 @@ export const syncQueue = sqliteTable('sync_queue', {
 export type SyncJob = typeof syncQueue.$inferSelect;
 export type NewSyncJob = typeof syncQueue.$inferInsert;
 
+/**
+ * PATQ Law — Pre-Admission Tension Queue receipts.
+ * A BLAKE3 receipt MUST be written here BEFORE any sync_queue row is inserted.
+ * Stores the chained receipt proving each job was gate-admitted.
+ */
+export const syncAdmissionReceipts = sqliteTable('sync_admission_receipts', {
+  id: text('id').primaryKey(), // rcpt_<first32hexOfReceiptHash>
+  jobId: integer('job_id'), // FK to sync_queue.id — null until the job row is inserted
+  jobType: text('job_type').notNull(),
+  entityId: text('entity_id'),
+  payloadHash: text('payload_hash').notNull(), // BLAKE3(canonicalStringify(payload))
+  previousReceiptHash: text('previous_receipt_hash').notNull(),
+  receiptHash: text('receipt_hash').notNull(), // BLAKE3 chain hash
+  admittedAt: text('admitted_at').notNull(), // ISO-8601
+  status: text('status')
+    .notNull()
+    .$type<'pre_insert' | 'committed' | 'failed'>()
+    .default('pre_insert'),
+  error: text('error'),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
+export type SyncAdmissionReceipt = typeof syncAdmissionReceipts.$inferSelect;
+export type NewSyncAdmissionReceipt = typeof syncAdmissionReceipts.$inferInsert;
+
+/**
+ * PATQ Law — gate-rejected events quarantine.
+ * Events that fail the DefaultAdmissionGate are written here (never silently dropped).
+ * Full payload and rejection reason are preserved for auditing.
+ */
+export const syncJobQuarantine = sqliteTable('sync_job_quarantine', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  jobType: text('job_type').notNull(),
+  payload: text('payload').notNull(), // JSON stringified payload
+  entityId: text('entity_id'),
+  rejectionReason: text('rejection_reason').notNull(),
+  verdict: text('verdict').notNull().$type<'reject' | 'quarantine'>(),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
+export type SyncJobQuarantine = typeof syncJobQuarantine.$inferSelect;
+export type NewSyncJobQuarantine = typeof syncJobQuarantine.$inferInsert;
+
 export const quads = sqliteTable('quads', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   subject: text('subject').notNull(),
@@ -43,7 +90,10 @@ export const actorCommands = sqliteTable('actor_commands', {
   idempotencyKey: text('idempotency_key').notNull(),
   causationId: text('causation_id'),
   correlationId: text('correlation_id'),
-  status: text('status').notNull().$type<'pending' | 'processing' | 'applied' | 'rejected'>().default('pending'),
+  status: text('status')
+    .notNull()
+    .$type<'pending' | 'processing' | 'applied' | 'rejected'>()
+    .default('pending'),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
 });
 
@@ -90,7 +140,10 @@ export const actorOutbox = sqliteTable('actor_outbox', {
   commandId: text('command_id').notNull(),
   jobType: text('job_type').notNull(), // e.g. 'DISPATCH_AUTHORITATIVE'
   payload: text('payload').notNull(), // JSON stringified command envelope
-  status: text('status').notNull().$type<'pending' | 'processing' | 'completed' | 'failed'>().default('pending'),
+  status: text('status')
+    .notNull()
+    .$type<'pending' | 'processing' | 'completed' | 'failed'>()
+    .default('pending'),
   attempts: integer('attempts').notNull().default(0),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
 });
@@ -109,7 +162,3 @@ export const actorQuarantine = sqliteTable('actor_quarantine', {
 
 export type ActorQuarantineRecord = typeof actorQuarantine.$inferSelect;
 export type NewActorQuarantineRecord = typeof actorQuarantine.$inferInsert;
-
-
-
-

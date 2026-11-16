@@ -28,7 +28,8 @@ export const MissionControl: React.FC<MissionControlProps> = ({
       subtitle="Membrane Topology & System Vitals"
       onBack={onBack}
       scrollable={true}
-      testID={testID}>
+      testID={testID}
+    >
       <View style={styles.content}>
         <SystemHealthDashboard testID={`${testID}-health`} />
 

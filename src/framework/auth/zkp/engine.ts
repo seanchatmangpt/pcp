@@ -34,9 +34,8 @@ export class ZkEngine implements ZkProvider {
 
       // Hardware Attestation (Iron Law constraint)
       // The ZKP must be tied to the device's hardware root of trust.
-      const enclaveSig =
-        proof.enclaveSignature !== undefined ? proof.enclaveSignature : 'mock_enclave_signature';
-      if (enclaveSig.trim() === '') {
+      const enclaveSig = proof.enclaveSignature;
+      if (!enclaveSig || enclaveSig.trim() === '') {
         return {
           verified: false,
           claimId: claim.id,
@@ -81,10 +80,17 @@ export class ZkEngine implements ZkProvider {
    */
   private async verifyEnclaveSignature(enclaveSignature: string): Promise<boolean> {
     // In a real implementation this would use Expo Crypto or similar to verify the signed hash of proofData
-    if (enclaveSignature === 'invalid-signature') {
+    if (
+      !enclaveSignature ||
+      enclaveSignature === 'invalid-signature' ||
+      enclaveSignature === 'mock_enclave_signature'
+    ) {
       return false;
     }
-    return true;
+    // Strict enforcement: Signature must be a valid hex or base64 string of sufficient length
+    const isHex = /^0x[0-9a-fA-F]{40,}$/.test(enclaveSignature);
+    const isBase64 = /^[A-Za-z0-9+/=]{40,}$/.test(enclaveSignature);
+    return isHex || isBase64;
   }
 
   /**
@@ -102,30 +108,9 @@ export class ZkEngine implements ZkProvider {
       return false;
     }
 
-    // If it looks like JSON or base64 JSON, strictly validate the SnarkJS structure.
-    // If it's a simple legacy/mock string (non-JSON), we allow it for backward compatibility in simulation.
-    const trimmed = proof.proofData.trim();
-    let isJson = trimmed.startsWith('{');
-    if (!isJson && /^[A-Za-z0-9+/=]+$/.test(trimmed)) {
-      try {
-        let decoded = '';
-        if (typeof Buffer !== 'undefined') {
-          decoded = Buffer.from(trimmed, 'base64').toString('utf8').trim();
-        } else if (typeof atob !== 'undefined') {
-          decoded = atob(trimmed).trim();
-        } else {
-          decoded = decodeBase64(trimmed).trim();
-        }
-        isJson = decoded.startsWith('{');
-      } catch {
-        // ignore
-      }
-    }
-
-    if (isJson) {
-      if (!this.isValidSnarkJsStructure(proof.proofData)) {
-        return false;
-      }
+    // Strictly validate the SnarkJS structure.
+    if (!this.isValidSnarkJsStructure(proof.proofData)) {
+      return false;
     }
 
     const signalValue = parseFloat(proof.publicSignals[0]);

@@ -4,22 +4,22 @@ export class Trajectories {
       idle: ['drafted'],
       drafted: ['reviewed'],
       reviewed: ['published'],
-      published: []
+      published: [],
     },
     OrderFlow: {
       idle: ['cart_updated'],
       cart_updated: ['address_added'],
       address_added: ['processing'],
       processing: ['completed'],
-      completed: []
+      completed: [],
     },
     VolunteerFlow: {
       idle: ['applied'],
       applied: ['interviewed', 'idle'],
       interviewed: ['approved', 'rejected'],
       approved: [],
-      rejected: []
-    }
+      rejected: [],
+    },
   };
 
   /**

@@ -1,4 +1,10 @@
-import { OcelLog, OcelEvent, OcelObject, OcelLogTs, toOcelLogTs } from '@/src/lib/truex/evidence/ocel';
+import {
+  OcelLog,
+  OcelEvent,
+  OcelObject,
+  OcelLogTs,
+  toOcelLogTs,
+} from '@/src/lib/truex/evidence/ocel';
 
 /**
  * Definition of a Petri Net structure for process mining conformance checking.
@@ -428,4 +434,3 @@ export function generateFuzzedOcelLog(): OcelLog {
 export function generateFuzzedOcelLogTs(): OcelLogTs {
   return toOcelLogTs(generateFuzzedOcelLog());
 }
-

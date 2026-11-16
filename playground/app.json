@@ -1,0 +1,19 @@
+{
+  "expo": {
+    "name": "Playground Dashboard",
+    "slug": "pcp-playground",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "playground",
+    "userInterfaceStyle": "dark",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}

@@ -1,4 +1,12 @@
-import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useMemo,
+  useEffect,
+  useRef,
+} from 'react';
 import { VoiceIntent, VoiceCommandBoundaryProps, VoiceContextValue } from './types';
 
 const VoiceContext = createContext<VoiceContextValue | undefined>(undefined);
@@ -27,15 +35,18 @@ export const VoiceCommandBoundary: React.FC<VoiceCommandBoundaryProps> = ({
     setActiveIntents((prev) => prev.filter((p) => !intentIds.includes(p.id)));
   }, []);
 
+  const getActiveIntents = useCallback(() => activeIntents, [activeIntents]);
+
   const value = useMemo(
     () => ({
       registerIntents,
       unregisterIntents,
       activeIntents,
+      getActiveIntents,
       isListening,
       setIsListening,
     }),
-    [registerIntents, unregisterIntents, activeIntents, isListening]
+    [registerIntents, unregisterIntents, activeIntents, getActiveIntents, isListening]
   );
 
   if (!enabled) {

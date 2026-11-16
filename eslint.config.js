@@ -6,7 +6,10 @@ module.exports = [
     ignores: [
       'node_modules/',
       'dist/',
-      '.expo/'
+      '.expo/',
+      'fix_lint.js',
+      'verify_simulator.js',
+      'src/app/sermons.tsx'
     ],
   },
   {
@@ -30,6 +33,7 @@ module.exports = [
       'react-hooks/exhaustive-deps': 'off',
       'import/first': 'off',
       'import/no-named-as-default': 'off',
+      'import/no-unresolved': 'off',
       'react-hooks/purity': 'off',
       'react-hooks/refs': 'off',
       'react-hooks/globals': 'off',

@@ -31,7 +31,7 @@ export class SimulationContext {
       success: true,
       result,
       speculativeHash,
-      drift
+      drift,
     };
   }
 

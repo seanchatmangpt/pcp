@@ -86,7 +86,12 @@ export class SupervisionProcessConformanceEvaluator {
     declaredWorkflow: string[],
     actualEvents: string[]
   ): ConformanceReport {
-    if (!declaredWorkflow || !actualEvents || !Array.isArray(declaredWorkflow) || !Array.isArray(actualEvents)) {
+    if (
+      !declaredWorkflow ||
+      !actualEvents ||
+      !Array.isArray(declaredWorkflow) ||
+      !Array.isArray(actualEvents)
+    ) {
       throw new Error('Invalid input types. Requires declaredWorkflow and actualEvents arrays.');
     }
 

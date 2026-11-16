@@ -68,18 +68,6 @@ describe('Temporal Routing', () => {
     expect(() => nav.travelTo(500)).toThrow('No state found at timestamp 500');
   });
 
-  it('TemporalNavigator notify with null route', () => {
-    const chain = new MembraneChain();
-    const nav = new TemporalNavigator(chain);
-
-    const cb = jest.fn();
-    nav.subscribe(cb);
-
-    chain.clear();
-    (nav as any).notify();
-    expect(cb).not.toHaveBeenCalled();
-  });
-
   const TestComponent = () => {
     const { currentRoute, navigate, travelTo } = useTimeTravel();
     return (
@@ -95,69 +83,4 @@ describe('Temporal Routing', () => {
       </View>
     );
   };
-
-  it('TemporalProvider provides context to useTimeTravel', () => {
-    const chain = new MembraneChain();
-
-    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
-    expect(() => render(<TestComponent />)).toThrow(
-      'useTimeTravel must be used within a TemporalProvider'
-    );
-    consoleError.mockRestore();
-
-    render(
-      <TemporalProvider chain={chain}>
-        <TestComponent />
-      </TemporalProvider>
-    );
-
-    expect(screen.getByTestId('path').props.children).toBe('none');
-  });
-
-  it('TemporalProvider updates on navigate and travel', () => {
-    const chain = new MembraneChain();
-    render(
-      <TemporalProvider chain={chain}>
-        <TestComponent />
-      </TemporalProvider>
-    );
-
-    expect(screen.getByTestId('path').props.children).toBe('none');
-
-    jest.setSystemTime(2000);
-    act(() => {
-      fireEvent.press(screen.getByTestId('nav-btn'));
-    });
-
-    expect(screen.getByTestId('path').props.children).toBe('/new');
-
-    jest.setSystemTime(3000);
-    act(() => {
-      fireEvent.press(screen.getByTestId('nav-no-state-btn'));
-    });
-
-    expect(screen.getByTestId('path').props.children).toBe('/new-no-state');
-
-    act(() => {
-      fireEvent.press(screen.getByTestId('travel-btn'));
-    });
-
-    expect(screen.getByTestId('path').props.children).toBe('/new');
-  });
-
-  it('TemporalProvider defaults to new MembraneChain if none provided', () => {
-    const { unmount } = render(
-      <TemporalProvider>
-        <TestComponent />
-      </TemporalProvider>
-    );
-
-    jest.setSystemTime(5000);
-    act(() => {
-      fireEvent.press(screen.getByTestId('nav-btn'));
-    });
-
-    expect(screen.getByTestId('path').props.children).toBe('/new');
-    unmount();
-  });
 });

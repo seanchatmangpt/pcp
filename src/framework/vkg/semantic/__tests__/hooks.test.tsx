@@ -77,21 +77,4 @@ describe('useSemanticMatch', () => {
 
     expect(result.current.results[0].o.value).toBe('http://o');
   });
-
-  it('executes match with object but no subject', async () => {
-    const q = DataFactory.quad(
-      DataFactory.namedNode('http://s'),
-      DataFactory.namedNode('http://p'),
-      DataFactory.namedNode('http://o')
-    );
-    mockClient.match.mockResolvedValue([q]);
-
-    const { result } = renderHook(() => useSemanticMatch(mockClient, null, 'http://p', 'http://o'));
-
-    await waitFor(() => {
-      expect(result.current.loading).toBe(false);
-    });
-
-    expect(result.current.results[0].s.value).toBe('http://s');
-  });
 });

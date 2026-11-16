@@ -23,6 +23,7 @@ export interface MeshMessage<TPayload = any> {
   senderId: string;
   payload: TPayload;
   timestamp: number;
+  proof?: string;
 }
 
 /**

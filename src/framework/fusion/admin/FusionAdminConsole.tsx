@@ -5,6 +5,7 @@ import { TelemetryGraph3D } from '../../admin/telemetry-3d/TelemetryGraph3D';
 import { SystemHealthDashboard } from '../../compositions/mission-control/SystemHealthDashboard';
 import { AutoFixer } from '../../ui/auto-fix/AutoFixer';
 import { FusionAdminConsoleProps, FusionErrorLog } from './types';
+import { useAdaptiveInteraction } from '../../auto/ux/adaptive/AdaptiveInteractionWrapper';
 
 const NAV_ITEMS: AdminNavigationItem[] = [
   { id: 'vitals', name: 'System Vitals' },
@@ -25,6 +26,7 @@ export const FusionAdminConsole: React.FC<FusionAdminConsoleProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<string>('vitals');
   const [errorLogs, setErrorLogs] = useState<FusionErrorLog[]>(initialErrorLogs);
+  const { simplifiedLayout } = useAdaptiveInteraction();
 
   const handleNavigate = (item: AdminNavigationItem) => {
     setActiveTab(item.id);
@@ -50,7 +52,8 @@ export const FusionAdminConsole: React.FC<FusionAdminConsoleProps> = ({
       activeNavigationId={activeTab}
       onNavigate={handleNavigate}
       testID={testID}
-      scrollable={activeTab !== 'telemetry'}>
+      scrollable={activeTab !== 'telemetry'}
+    >
       <View style={styles.container}>
         {activeTab === 'vitals' && (
           <View testID={`${testID}-vitals-tab`}>
@@ -66,11 +69,20 @@ export const FusionAdminConsole: React.FC<FusionAdminConsoleProps> = ({
 
         {activeTab === 'telemetry' && (
           <View style={styles.telemetryContainer} testID={`${testID}-telemetry-tab`}>
-            <TelemetryGraph3D
-              topology={topology}
-              onNodeClick={onNodeClick}
-              testID={`${testID}-graph`}
-            />
+            {simplifiedLayout ? (
+              <View style={styles.disabledContainer}>
+                <Text style={styles.disabledTitle}>3D Telemetry Disabled</Text>
+                <Text style={styles.disabledText}>
+                  Performance throttled. UI simplified to preserve system resources.
+                </Text>
+              </View>
+            ) : (
+              <TelemetryGraph3D
+                topology={topology}
+                onNodeClick={onNodeClick}
+                testID={`${testID}-graph`}
+              />
+            )}
           </View>
         )}
 
@@ -130,6 +142,29 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 500,
     marginTop: 8,
+  },
+  disabledContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#0F172A',
+    borderRadius: 16,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: '#334155',
+    borderStyle: 'dashed',
+  },
+  disabledTitle: {
+    color: '#F8FAFC',
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 8,
+  },
+  disabledText: {
+    color: '#94A3B8',
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 20,
   },
   sectionTitle: {
     fontSize: 18,

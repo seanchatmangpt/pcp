@@ -1,5 +1,6 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { AutoFixer } from '../ui/auto-fix/AutoFixer';
 
 export interface ErrorBoundaryProps {
   /**
@@ -63,10 +64,16 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         <View style={styles.container} testID="error-boundary-fallback">
           <Text style={styles.title}>Something went wrong</Text>
           <Text style={styles.message}>{this.state.error.message}</Text>
+          {__DEV__ && (
+            <View style={{ width: '100%', marginBottom: 16 }}>
+              <AutoFixer error={this.state.error} onReset={this.resetError} />
+            </View>
+          )}
           <TouchableOpacity
             style={styles.button}
             onPress={this.resetError}
-            testID="error-boundary-retry">
+            testID="error-boundary-retry"
+          >
             <Text style={styles.buttonText}>Try Again</Text>
           </TouchableOpacity>
         </View>

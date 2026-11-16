@@ -35,7 +35,10 @@ export class Literal implements Term {
   readonly language: string;
   readonly datatype: NamedNode;
 
-  constructor(readonly value: string, languageOrDatatype?: string | NamedNode) {
+  constructor(
+    readonly value: string,
+    languageOrDatatype?: string | NamedNode
+  ) {
     if (typeof languageOrDatatype === 'string') {
       this.language = languageOrDatatype;
       this.datatype = new NamedNode('http://www.w3.org/1999/02/22-rdf-syntax-ns#langString');

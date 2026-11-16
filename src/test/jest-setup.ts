@@ -1,8 +1,29 @@
 /// <reference types="jest" />
 
+const rn = require('react-native');
+Object.defineProperty(rn, 'DevSettings', {
+  configurable: true,
+  enumerable: true,
+  get() {
+    return {
+      reload: jest.fn(),
+      addMenuItem: jest.fn(),
+    };
+  },
+});
+
 // Mock AsyncStorage
 jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock')
+);
+
+jest.mock(
+  'react-native/Libraries/Utilities/DevSettings',
+  () => ({
+    reload: jest.fn(),
+    addMenuItem: jest.fn(),
+  }),
+  { virtual: true }
 );
 
 // Mock database module globally to prevent native SQLite instantiation in non-db tests
@@ -33,6 +54,8 @@ const mockDbModule = {
   DATABASE_NAME: '@truex/membrane-client.db',
   expoDb: {
     execSync: jest.fn(),
+    runSync: jest.fn(),
+    getAllSync: jest.fn(() => []),
     execAsync: jest.fn().mockResolvedValue(undefined),
     runAsync: jest.fn().mockResolvedValue({ changes: 0, lastInsertRowId: 0 }),
     getFirstAsync: jest.fn().mockResolvedValue(null),
@@ -76,7 +99,6 @@ jest.mock('expo-router', () => {
         );
       });
       MockStack.Screen = MockScreen;
-      MockStack.AvatarRelativeProjection = MockScreen;
       MockStack.Protected = ({ children }: any) => children;
       return MockStack;
     })(),
@@ -84,7 +106,6 @@ jest.mock('expo-router', () => {
       const MockTabs = ({ children }: any) => children;
       const MockScreen = jest.fn();
       MockTabs.Screen = MockScreen;
-      MockTabs.AvatarRelativeProjection = MockScreen;
       return MockTabs;
     })(),
   };
@@ -101,9 +122,20 @@ jest.mock('expo-router/react-navigation', () => ({
     params: {},
   }),
 }));
-
 // Mock Worklets
 jest.mock('react-native-worklets', () => require('react-native-worklets/src/mock'));
+jest.mock(
+  'react-native-worklets-core',
+  () => {
+    return {
+      makeMutable: jest.fn((v: any) => ({ value: v })),
+      makeShareable: jest.fn((v: any) => v),
+      runOnJS: jest.fn((v: any) => v),
+      runOnUI: jest.fn((v: any) => v),
+    };
+  },
+  { virtual: true }
+);
 
 // Mock Reanimated
 jest.mock('react-native-reanimated', () => {
@@ -121,6 +153,17 @@ jest.mock('@expo/vector-icons', () => {
 });
 
 // Mock react-native-mmkv globally
+jest.mock(
+  'react-native-nitro-modules',
+  () => {
+    return {
+      NativeNitroModules: {},
+      buildNitroModule: jest.fn(),
+    };
+  },
+  { virtual: true }
+);
+
 jest.mock('react-native-mmkv', () => {
   const instances: Record<string, any> = {};
   const createInstance = (options?: { id?: string }) => {
@@ -159,7 +202,6 @@ jest.mock('react-native-mmkv', () => {
   };
 
   return {
-    MMKV: jest.fn().mockImplementation((options) => createInstance(options)),
     createMMKV: jest.fn((options) => createInstance(options)),
   };
 });
@@ -194,6 +236,8 @@ jest.mock('drizzle-orm/expo-sqlite', () => ({
 jest.mock('expo-sqlite', () => {
   const mockDb = {
     execSync: jest.fn(),
+    runSync: jest.fn(),
+    getAllSync: jest.fn(() => []),
     execAsync: jest.fn().mockResolvedValue(undefined),
     runAsync: jest.fn().mockResolvedValue({ changes: 0, lastInsertRowId: 0 }),
     getFirstAsync: jest.fn().mockResolvedValue(null),
@@ -203,10 +247,10 @@ jest.mock('expo-sqlite', () => {
   const mockExpoSQLite = {
     openDatabaseSync: jest.fn(() => mockDb),
     openDatabaseAsync: jest.fn().mockResolvedValue(mockDb),
-    NativeDatabase: jest.fn().mockImplementation(function() {
+    NativeDatabase: jest.fn().mockImplementation(function () {
       return mockDb;
     }),
-    SQLiteDatabase: jest.fn().mockImplementation(function() {
+    SQLiteDatabase: jest.fn().mockImplementation(function () {
       return mockDb;
     }),
   };
@@ -217,14 +261,22 @@ jest.mock('expo-sqlite', () => {
 });
 
 // Mock project supabase client globally
-const mockSingle = jest.fn();
-const mockUpsert = jest.fn();
+const mockSingle = jest.fn().mockResolvedValue({ data: null, error: null });
+const mockUpsert = jest.fn().mockResolvedValue({ data: null, error: null });
 const mockSignOut = jest.fn();
 const mockSupabaseChain = {
   select: jest.fn().mockReturnThis(),
   eq: jest.fn().mockReturnThis(),
   single: mockSingle,
   upsert: mockUpsert,
+  update: jest.fn().mockReturnThis(),
+  delete: jest.fn().mockReturnThis(),
+  then: jest.fn((onfulfilled) => {
+    if (onfulfilled) {
+      onfulfilled({ data: null, error: null });
+    }
+    return Promise.resolve({ data: null, error: null });
+  }),
 };
 const mockSupabaseClient = {
   supabase: {
@@ -232,12 +284,14 @@ const mockSupabaseClient = {
     auth: {
       signOut: mockSignOut,
       getSession: jest.fn().mockResolvedValue({ data: { session: null }, error: null }),
-      onAuthStateChange: jest.fn().mockReturnValue({ data: { subscription: { unsubscribe: jest.fn() } } }),
+      onAuthStateChange: jest
+        .fn()
+        .mockReturnValue({ data: { subscription: { unsubscribe: jest.fn() } } }),
     },
   },
 };
 
-jest.mock('@/lib/supabase', () => mockSupabaseClient, { virtual: true });
+jest.mock('@/lib/supabase', () => mockSupabaseClient);
 jest.mock('../../lib/supabase', () => mockSupabaseClient, { virtual: true });
 
 //// Mock Zustand Actor Ops Store globally
@@ -263,7 +317,9 @@ let mockLatestReceipt: any = { id: 'mock-rec-id' };
 const mockActorOpsState = {
   _networkOnline: true,
   get networkOnline() {
-    return (global as any).mockNetworkOnline !== undefined ? (global as any).mockNetworkOnline : this._networkOnline;
+    return (global as any).mockNetworkOnline !== undefined
+      ? (global as any).mockNetworkOnline
+      : this._networkOnline;
   },
   set networkOnline(val) {
     this._networkOnline = val;
@@ -308,7 +364,6 @@ const mockUseActorOpsStore = jest.fn((selector: any) => {
     mockLatestReceipt = mockActorOpsState.latestReceipt;
   }
 });
-
 
 const mockPushChanges = jest.fn(() => Promise.resolve());
 const mockSyncEngine = {
@@ -492,3 +547,43 @@ beforeEach(() => {
   setupMockImplementations();
 });
 
+// Mock background fetch and native device state modules globally using virtual mocks
+jest.mock('expo-task-manager', () => ({
+  defineTask: jest.fn(),
+  isTaskDefined: jest.fn(() => true),
+}), { virtual: true });
+
+jest.mock('expo-background-fetch', () => ({
+  BackgroundFetchResult: {
+    NoData: 1,
+    NewData: 2,
+    Failed: 3,
+  },
+  BackgroundFetchStatus: {
+    Restricted: 1,
+    Denied: 2,
+    Available: 3,
+  },
+  registerTaskAsync: jest.fn(),
+  unregisterTaskAsync: jest.fn(),
+  getStatusAsync: jest.fn().mockResolvedValue(3),
+}), { virtual: true });
+
+jest.mock('expo-battery', () => ({
+  BatteryState: {
+    UNKNOWN: 0,
+    UNPLUGGED: 1,
+    CHARGING: 2,
+    FULL: 3,
+  },
+  getBatteryLevelAsync: jest.fn().mockResolvedValue(0.8),
+  getBatteryStateAsync: jest.fn().mockResolvedValue(1),
+  isAvailableAsync: jest.fn().mockResolvedValue(true),
+}), { virtual: true });
+
+jest.mock('expo-network', () => ({
+  getNetworkStateAsync: jest.fn().mockResolvedValue({
+    isConnected: true,
+    isInternetReachable: true,
+  }),
+}), { virtual: true });

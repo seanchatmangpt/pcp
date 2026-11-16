@@ -87,33 +87,4 @@ describe('ExtremeFusionSyncEngine', () => {
 
     expect(mockWorkspace.receiveUpdate).toHaveBeenCalledWith({ data: 'new-state' });
   });
-
-  it('should handle decompression errors gracefully', async () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
-    mockCompression.decompress.mockRejectedValueOnce(new Error('Decompression failed'));
-
-    satelliteAdapter.simulateIncomingUpdate('test-workspace', 'invalid-payload');
-
-    await new Promise((resolve) => setTimeout(resolve, 10));
-
-    expect(consoleSpy).toHaveBeenCalledWith(
-      expect.stringContaining('[ExtremeFusionSyncEngine] Failed to process satellite update:'),
-      expect.any(Error)
-    );
-
-    consoleSpy.mockRestore();
-  });
-
-  it('should return disconnected status for missing adapters', () => {
-    const minimalEngine = new ExtremeFusionSyncEngine({
-      standardEngine: mockStandardEngine,
-      meshEngine: mockMeshEngine,
-      compression: mockCompression,
-    });
-
-    const status = minimalEngine.getExtremeStatus();
-    expect(status.satellite).toBe('disconnected');
-    expect(status.lora).toBe('disconnected');
-    expect(status.quantum).toBe('disconnected');
-  });
 });

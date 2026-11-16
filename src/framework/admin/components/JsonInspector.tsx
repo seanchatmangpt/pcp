@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useTheme } from '../../ui/theme/useTheme';
 
 export interface JsonInspectorProps {
   data: any;
@@ -14,6 +15,7 @@ export function JsonInspector({
   testID,
   initiallyExpanded = false,
 }: JsonInspectorProps) {
+  const theme = useTheme();
   const [collapsed, setCollapsed] = useState(!initiallyExpanded);
 
   let formatted = '';
@@ -25,16 +27,31 @@ export function JsonInspector({
   }
 
   return (
-    <View style={styles.container} testID={testID}>
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: theme.colors.background,
+          borderColor: theme.colors.border,
+        },
+      ]}
+      testID={testID}
+    >
       <TouchableOpacity
-        style={styles.header}
+        style={[
+          styles.header,
+          {
+            backgroundColor: theme.colors.card,
+          },
+        ]}
         onPress={() => setCollapsed(!collapsed)}
         activeOpacity={0.7}
         testID={testID ? `${testID}-toggle` : 'json-inspector-toggle'}
         accessible={true}
         accessibilityRole="button"
         accessibilityLabel={title || 'View Payload'}
-        accessibilityState={{ expanded: !collapsed }}>
+        accessibilityState={{ expanded: !collapsed }}
+      >
         <Text style={styles.title}>{title || 'View Payload'}</Text>
         <View style={styles.iconContainer}>
           <Text style={styles.arrow}>{collapsed ? '▶' : '▼'}</Text>

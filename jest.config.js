@@ -6,9 +6,12 @@ module.exports = {
   ],
   moduleNameMapper: {
     '\\.css$': '<rootDir>/src/test/styleMock.ts',
+    '^@pcp/framework/(.*)$': '<rootDir>/src/framework/$1',
+    '^@pcp/(.*)$': '<rootDir>/src/framework/$1',
     '^@\\/(.*)$': '<rootDir>/$1',
     '^(\\.{1,2}/.*)\\.js$': '$1',
   },
   collectCoverageFrom: ['src/**/*.{js,jsx,ts,tsx}', '!src/**/*.test.{js,jsx,ts,tsx}'],
-  modulePathIgnorePatterns: ['<rootDir>/supabase/'],
+  modulePathIgnorePatterns: ['<rootDir>/supabase/', '<rootDir>/packages/', '<rootDir>/apps/'],
+  testPathIgnorePatterns: ['/node_modules/', '<rootDir>/supabase/', '<rootDir>/packages/', '<rootDir>/apps/'],
 };

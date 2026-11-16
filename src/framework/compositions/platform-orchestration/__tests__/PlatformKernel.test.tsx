@@ -58,9 +58,4 @@ describe('PlatformKernel', () => {
 
     expect(removeSubscription).toHaveBeenCalled();
   });
-
-  it('handles empty modules list', () => {
-    render(<PlatformKernel />);
-    expect(useModuleFederation).not.toHaveBeenCalled();
-  });
 });

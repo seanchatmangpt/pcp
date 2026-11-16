@@ -35,7 +35,8 @@ export const SemanticIntentView: React.FC<SemanticIntentViewProps> = ({
   return (
     <View
       style={[{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center' }, style]}
-      {...props}>
+      {...props}
+    >
       {children ? (
         children(intent)
       ) : (

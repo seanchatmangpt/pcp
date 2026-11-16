@@ -50,6 +50,7 @@ export const VoiceAccessibleText: React.FC<VoiceAccessibleTextProps> = ({
   ...textProps
 }) => {
   const { t } = useTranslation();
+  const componentId = React.useId();
 
   // 1. Automatic Localization
   const content = useMemo(() => {
@@ -82,7 +83,7 @@ export const VoiceAccessibleText: React.FC<VoiceAccessibleTextProps> = ({
   useEffect(() => {
     let registeredId: string | null = null;
     if (typeof content === 'string' && content.length > 0) {
-      const intentId = `voice-text-${content.replace(/\s+/g, '-').toLowerCase()}`;
+      const intentId = `voice-text-${content.replace(/\s+/g, '-').toLowerCase()}-${componentId}`;
       const commands = [`${voiceCommandPrefix} ${content}`, content, ...memoizedExtraCommands];
 
       registerIntents([

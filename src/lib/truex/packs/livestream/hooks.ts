@@ -68,7 +68,8 @@ export const livestreamIncidentBehavior: HookBehavior = {
         effects.push({
           type: 'member_status_projection',
           payload: {
-            message: 'We are experiencing connection issues with the video feed. Audio-only options are available.',
+            message:
+              'We are experiencing connection issues with the video feed. Audio-only options are available.',
             timestamp: new Date().toISOString(),
           },
         });

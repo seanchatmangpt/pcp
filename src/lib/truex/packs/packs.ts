@@ -71,10 +71,10 @@ export class TensionQueueMapper {
       try {
         const parsed = JSON.parse(job.payload);
         const actorRef = parsed.actorRef || parsed.actor;
-        const matchesPack = 
+        const matchesPack =
           (actorRef && (actorRef.packId === packName || actorRef.kind === packName)) ||
           job.entityId === packName ||
-          (parsed.packId === packName);
+          parsed.packId === packName;
 
         if (matchesPack) {
           matchedJobs.push({

@@ -1,4 +1,5 @@
 import React from 'react';
+import { View } from 'react-native';
 import { useGenEx } from './GenExProvider';
 
 interface GenExDynamicWrapperProps {
@@ -13,18 +14,18 @@ export const GenExDynamicWrapper: React.FC<GenExDynamicWrapperProps> = ({ childr
   const { currentVariant } = useGenEx();
   const { aesthetic, layoutType } = currentVariant;
 
-  const style = {
+  const style: any = {
     '--genex-primary-color': aesthetic.primaryColor,
     '--genex-background-color': aesthetic.backgroundColor,
     '--genex-spacing-scale': aesthetic.spacingScale.toString(),
     '--genex-border-radius': `${aesthetic.borderRadius}px`,
     // Derived spacing
     '--genex-spacing-unit': `${8 * aesthetic.spacingScale}px`,
-  } as React.CSSProperties;
+  };
 
   return (
-    <div className={`genex-wrapper genex-layout-${layoutType}`} style={style}>
+    <View className={`genex-wrapper genex-layout-${layoutType}`} style={style}>
       {children}
-    </div>
+    </View>
   );
 };

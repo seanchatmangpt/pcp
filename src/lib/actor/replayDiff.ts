@@ -42,18 +42,22 @@ export function analyzeSingleCommandReplay(
     divergences.push({
       commandId: envelope.id,
       errorType: 'missing transition',
-      details: `missing transition: No observed receipt record found for commandId '${envelope.id}'`
+      details: `missing transition: No observed receipt record found for commandId '${envelope.id}'`,
     });
     return divergences;
   }
 
   // 2. Unexpected Mutation check (delta hash mismatch)
-  if (replayedSuccess && observedReceipt.status !== 'rejected_local' && observedReceipt.status !== 'rejected_remote') {
+  if (
+    replayedSuccess &&
+    observedReceipt.status !== 'rejected_local' &&
+    observedReceipt.status !== 'rejected_remote'
+  ) {
     if (observedReceipt.deltaHash !== expectedDeltaHash) {
       divergences.push({
         commandId: envelope.id,
         errorType: 'unexpected mutation',
-        details: `unexpected mutation: Observed delta hash (${observedReceipt.deltaHash || 'none'}) does not match expected replayed delta hash (${expectedDeltaHash})`
+        details: `unexpected mutation: Observed delta hash (${observedReceipt.deltaHash || 'none'}) does not match expected replayed delta hash (${expectedDeltaHash})`,
       });
     }
   }
@@ -63,25 +67,27 @@ export function analyzeSingleCommandReplay(
     divergences.push({
       commandId: envelope.id,
       errorType: 'authority mismatch',
-      details: `authority mismatch: Principal role '${envelope.principal.role}' is unauthorized to execute command '${envelope.command}' (allowed roles: ${allowedRoles.join(', ')})`
+      details: `authority mismatch: Principal role '${envelope.principal.role}' is unauthorized to execute command '${envelope.command}' (allowed roles: ${allowedRoles.join(', ')})`,
     });
   }
 
   // 4. Receipt Inconsistency check
-  const observedFailed = ['rejected_local', 'rejected_remote', 'quarantined'].includes(observedReceipt.status);
+  const observedFailed = ['rejected_local', 'rejected_remote', 'quarantined'].includes(
+    observedReceipt.status
+  );
   const replayedFailed = !replayedSuccess;
 
   if (observedFailed !== replayedFailed) {
     divergences.push({
       commandId: envelope.id,
       errorType: 'receipt inconsistency',
-      details: `receipt inconsistency: Replay outcome (success: ${replayedSuccess}${replayedError ? `, error: ${replayedError}` : ''}) contradicts observed receipt status '${observedReceipt.status}'`
+      details: `receipt inconsistency: Replay outcome (success: ${replayedSuccess}${replayedError ? `, error: ${replayedError}` : ''}) contradicts observed receipt status '${observedReceipt.status}'`,
     });
   } else if (observedFailed && replayedFailed && observedReceipt.error !== replayedError) {
     divergences.push({
       commandId: envelope.id,
       errorType: 'receipt inconsistency',
-      details: `receipt inconsistency: Replay error message ('${replayedError || ''}') does not match observed error ('${observedReceipt.error || ''}')`
+      details: `receipt inconsistency: Replay error message ('${replayedError || ''}') does not match observed error ('${observedReceipt.error || ''}')`,
     });
   }
 
@@ -91,7 +97,7 @@ export function analyzeSingleCommandReplay(
       divergences.push({
         commandId: envelope.id,
         errorType: 'causal divergence',
-        details: `causal divergence: Broken causation ID chain for command '${envelope.id}' (expected causationId '${envelope.causationId}')`
+        details: `causal divergence: Broken causation ID chain for command '${envelope.id}' (expected causationId '${envelope.causationId}')`,
       });
     }
   }

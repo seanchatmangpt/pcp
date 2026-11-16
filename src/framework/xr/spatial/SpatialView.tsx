@@ -66,7 +66,8 @@ export const SpatialView: React.FC<SpatialViewProps> = ({
       {...rest}
       // @ts-ignore - Custom props for XR runtimes
       isVolumetric={isVolumetric}
-      spatialTransform={transform}>
+      spatialTransform={transform}
+    >
       {children}
     </View>
   );

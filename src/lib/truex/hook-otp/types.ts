@@ -14,7 +14,11 @@ export interface HookEffect {
   payload: any;
 }
 
-export type HookMessageType = 'graph_delta' | 'receipt_event' | 'replay_request' | 'supervisor_signal';
+export type HookMessageType =
+  | 'graph_delta'
+  | 'receipt_event'
+  | 'replay_request'
+  | 'supervisor_signal';
 
 export interface HookMessage {
   id: string;
@@ -48,7 +52,15 @@ export interface HookBehavior {
   terminate?: (reason: string, ctx: HookExecutionContext) => Promise<void>;
 }
 
-export type SupervisorAction = 'suppress' | 'batch' | 'reroute' | 'fork' | 'quarantine' | 'repair' | 'escalate' | 'restart';
+export type SupervisorAction =
+  | 'suppress'
+  | 'batch'
+  | 'reroute'
+  | 'fork'
+  | 'quarantine'
+  | 'repair'
+  | 'escalate'
+  | 'restart';
 
 export interface HookSupervisor {
   onFailure: (error: any, msg: HookMessage, attempts: number) => Promise<SupervisorAction>;

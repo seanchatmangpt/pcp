@@ -1,5 +1,14 @@
 import React from 'react';
-import { View, Text, TextInput, Button, StyleSheet, ActivityIndicator, Switch } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  ActivityIndicator,
+  Switch,
+  TouchableOpacity,
+} from 'react-native';
+import { KeyboardSafeForm } from '../../ui/KeyboardSafeForm';
 import { useSemanticForm } from './useSemanticForm';
 import { SemanticFormProps, FormFieldMetadata } from './types';
 
@@ -14,6 +23,7 @@ export const SemanticForm: React.FC<SemanticFormProps> = ({
 }) => {
   const { schema, values, errors, isSubmitting, isLoadingSchema, setFieldValue, handleSubmit } =
     useSemanticForm(client, targetType, initialData);
+  const [focusedField, setFocusedField] = React.useState<string | null>(null);
 
   if (isLoadingSchema) {
     return (
@@ -52,16 +62,27 @@ export const SemanticForm: React.FC<SemanticFormProps> = ({
           />
         ) : (
           <TextInput
-            style={[styles.input, errors[field.predicate] ? styles.inputError : null]}
+            style={[
+              styles.input,
+              focusedField === field.predicate ? styles.inputFocused : null,
+              errors[field.predicate] ? styles.inputError : null,
+            ]}
             value={values[field.predicate]?.toString() || ''}
             onChangeText={(text) => {
-              let val: any = text;
               if (isNumeric) {
-                val = text.includes('.') ? parseFloat(text) : parseInt(text, 10);
-                if (isNaN(val)) val = text;
+                const isDouble = field.range === 'http://www.w3.org/2001/XMLSchema#double';
+                const filter = isDouble 
+                  ? /^[+-]?\d*\.?\d*(?:[eE][+-]?\d*)?$/
+                  : /^[+-]?\d*$/;
+                if (filter.test(text)) {
+                  setFieldValue(field.predicate, text);
+                }
+              } else {
+                setFieldValue(field.predicate, text);
               }
-              setFieldValue(field.predicate, val);
             }}
+            onFocus={() => setFocusedField(field.predicate)}
+            onBlur={() => setFocusedField(null)}
             keyboardType={isNumeric ? 'numeric' : 'default'}
             placeholder={field.label}
           />
@@ -73,29 +94,49 @@ export const SemanticForm: React.FC<SemanticFormProps> = ({
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Form for {schema.targetType.split(/[/|#]/).pop()}</Text>
-      {schema.fields.map(renderField)}
+    <KeyboardSafeForm
+      style={styles.keyboardAvoidingView}
+      contentContainerStyle={{ flexGrow: 1 }}
+      keyboardShouldPersistTaps="handled"
+    >
+      <View style={styles.container}>
+        <Text style={styles.title}>Form for {schema.targetType.split(/[/|#]/).pop()}</Text>
+        {schema.fields.map(renderField)}
 
-      <View style={styles.buttonContainer}>
-        {onCancel && (
-          <View style={styles.button}>
-            <Button title={cancelLabel} onPress={onCancel} color="#666" />
-          </View>
-        )}
-        <View style={styles.button}>
-          <Button
-            title={isSubmitting ? 'Submitting...' : submitLabel}
+        <View style={styles.buttonContainer}>
+          {onCancel && (
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={onCancel}
+              accessible={true}
+              accessibilityRole="button"
+              accessibilityLabel={cancelLabel}
+            >
+              <Text style={styles.cancelButtonText}>{cancelLabel}</Text>
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity
+            style={styles.submitButton}
             onPress={() => handleSubmit(onSubmit)}
             disabled={isSubmitting}
-          />
+            accessible={true}
+            accessibilityRole="button"
+            accessibilityLabel={isSubmitting ? 'Submitting' : submitLabel}
+          >
+            <Text style={styles.submitButtonText}>
+              {isSubmitting ? 'Submitting...' : submitLabel}
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
-    </View>
+    </KeyboardSafeForm>
   );
 };
 
 const styles = StyleSheet.create({
+  keyboardAvoidingView: {
+    flex: 1,
+  },
   container: {
     padding: 16,
     backgroundColor: '#fff',
@@ -137,6 +178,11 @@ const styles = StyleSheet.create({
   inputError: {
     borderColor: 'red',
   },
+  inputFocused: {
+    borderColor: '#007AFF',
+    borderWidth: 2,
+    padding: 7,
+  },
   errorText: {
     color: 'red',
     fontSize: 12,
@@ -149,5 +195,35 @@ const styles = StyleSheet.create({
   },
   button: {
     marginLeft: 8,
+  },
+  cancelButton: {
+    marginLeft: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    backgroundColor: '#666',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 44,
+  },
+  cancelButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  submitButton: {
+    marginLeft: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    backgroundColor: '#007AFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 44,
+  },
+  submitButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

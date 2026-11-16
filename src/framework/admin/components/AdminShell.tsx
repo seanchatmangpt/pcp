@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 
 export interface AdminNavigationItem {
@@ -35,11 +36,11 @@ export function AdminShell({
   const ContentContainer = scrollable ? ScrollView : View;
 
   return (
-    <SafeAreaView style={styles.safeArea} testID={testID}>
+    <SafeAreaView style={styles.safeArea} className="bg-background" testID={testID}>
       <View style={styles.container}>
         {headerBanner}
         {/* Header */}
-        <View style={styles.header}>
+        <View style={styles.header} className="bg-background border-b border-border">
           {onBack && (
             <TouchableOpacity
               onPress={onBack}
@@ -48,24 +49,29 @@ export function AdminShell({
               activeOpacity={0.7}
               accessible={true}
               accessibilityRole="button"
-              accessibilityLabel="Go back">
+              accessibilityLabel="Go back"
+            >
               <FontAwesome name="arrow-left" size={16} color="#3B82F6" />
             </TouchableOpacity>
           )}
           <View style={styles.headerTitleContainer}>
             <Text
               style={styles.title}
+              className="text-text"
               numberOfLines={1}
               accessibilityRole="header"
-              testID={testID ? `${testID}-title` : 'admin-shell-title'}>
+              testID={testID ? `${testID}-title` : 'admin-shell-title'}
+            >
               {title}
             </Text>
             {subtitle && (
               <Text
                 style={styles.subtitle}
+                className="text-secondary"
                 numberOfLines={1}
                 accessibilityRole="header"
-                testID={testID ? `${testID}-subtitle` : 'admin-shell-subtitle'}>
+                testID={testID ? `${testID}-subtitle` : 'admin-shell-subtitle'}
+              >
                 {subtitle}
               </Text>
             )}
@@ -74,11 +80,12 @@ export function AdminShell({
 
         {/* Quick Admin Navigation Bar */}
         {navigationItems.length > 0 && (
-          <View style={styles.navRow}>
+          <View style={styles.navRow} className="bg-background border-b border-border">
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.navScroll}>
+              contentContainerStyle={styles.navScroll}
+            >
               {navigationItems.map((item) => {
                 const isActive = activeNavigationId === item.id;
                 return (
@@ -86,13 +93,18 @@ export function AdminShell({
                     key={item.id}
                     onPress={() => onNavigate && onNavigate(item)}
                     style={[styles.navButton, isActive && styles.navButtonActive]}
+                    className={isActive ? 'bg-primary/15 border-primary' : 'bg-card border-border'}
                     activeOpacity={0.7}
                     testID={testID ? `${testID}-nav-${item.id}` : `nav-${item.id}`}
                     accessible={true}
                     accessibilityRole="button"
                     accessibilityLabel={`${item.name} navigation button`}
-                    accessibilityState={{ selected: isActive }}>
-                    <Text style={[styles.navButtonText, isActive && styles.navButtonTextActive]}>
+                    accessibilityState={{ selected: isActive }}
+                  >
+                    <Text
+                      style={[styles.navButtonText, isActive && styles.navButtonTextActive]}
+                      className={isActive ? 'text-text' : 'text-secondary'}
+                    >
                       {item.name}
                     </Text>
                   </TouchableOpacity>
@@ -103,13 +115,20 @@ export function AdminShell({
         )}
 
         {/* Workspace */}
-        <ContentContainer
-          style={styles.content}
-          contentContainerStyle={scrollable ? styles.scrollContent : undefined}
-          keyboardShouldPersistTaps="handled"
-          testID={testID ? `${testID}-content` : 'admin-shell-content'}>
-          {children}
-        </ContentContainer>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{ flex: 1 }}
+        >
+          <ContentContainer
+            style={styles.content}
+            className="bg-background"
+            contentContainerStyle={scrollable ? styles.scrollContent : undefined}
+            keyboardShouldPersistTaps="handled"
+            testID={testID ? `${testID}-content` : 'admin-shell-content'}
+          >
+            {children}
+          </ContentContainer>
+        </KeyboardAvoidingView>
       </View>
     </SafeAreaView>
   );
@@ -118,7 +137,6 @@ export function AdminShell({
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#0F172A', // slate-900 base background
   },
   container: {
     flex: 1,
@@ -129,8 +147,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#1E293B', // slate-800
-    backgroundColor: '#0F172A',
     zIndex: 10,
   },
   backButton: {
@@ -145,18 +161,14 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#F8FAFC',
     letterSpacing: 0.3,
   },
   subtitle: {
     fontSize: 12,
-    color: '#94A3B8',
     marginTop: 2,
   },
   navRow: {
     borderBottomWidth: 1,
-    borderBottomColor: '#1E293B',
-    backgroundColor: '#0F172A',
   },
   navScroll: {
     paddingHorizontal: 16,
@@ -168,21 +180,15 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 14,
     borderRadius: 20,
-    backgroundColor: '#1E293B', // slate-800
     borderWidth: 1,
-    borderColor: '#334155', // slate-700
   },
   navButtonActive: {
-    backgroundColor: 'rgba(59, 130, 246, 0.15)',
-    borderColor: '#3B82F6',
   },
   navButtonText: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#94A3B8',
   },
   navButtonTextActive: {
-    color: '#F8FAFC',
   },
   content: {
     flex: 1,
